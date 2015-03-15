@@ -11,7 +11,7 @@ public class ParserDriver {
         parser = new Parser(inputFilename, parseTableFilename);
     }
 
-    protected void run()
+    public void run()
     {
         try {
             parser.parse();

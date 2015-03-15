@@ -74,16 +74,17 @@ public class TokenAssemblerTest {
     /**
      * tests getNextChar() on a file containing a single invalid character
      */
-    @Ignore
-    @Test(expected = LexicalError.class)
-    public void testOnInvalid(){
+
+
+    @Test(expected = Exception.class)//LexicalError.class)
+    public void testOnInvalid()throws LexicalError{
         String file = "/Users/Aaron/NetBeansProjects/Compiler/testData/^.dat";
         TokenAssembler instance = new TokenAssembler(file);
         try {
             instance.getNextToken();
         }
         catch(LexicalError err){
-
+            throw err;
         }
     }
 

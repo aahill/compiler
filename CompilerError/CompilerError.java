@@ -8,7 +8,7 @@ public abstract class CompilerError extends Exception
     /** The type of error.  New types should be added to the enumeration
      * as the compiler generates new errors.
      */
-    public enum Type {BAD_COMMENT, ILLEGAL_CHARACTER, UNTERMINATED_COMMENT,
+    public enum Type {TEST, BAD_COMMENT, ILLEGAL_CHARACTER, UNTERMINATED_COMMENT,
         IDENTIFIER_TOO_LONG, CONSTANT_TOO_LONG, UNEXPECTED_TOKEN, PARSE_TABLE_ERROR,
         TOKEN_MISMATCH};
 

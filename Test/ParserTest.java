@@ -12,9 +12,10 @@ public class ParserTest {
      */
     @Test
     public void testOnParseTest(){
-        String parseFile = "/Src/Test/TestFiles/parsetest.dat";
-        String parseTableFile = "/Src/Test/TestFiles/parseTable.dat";
+        String parseTableFile = "Src/Test/TestFiles/parseTable.dat";
+        String parseFile = "Src/Test/TestFiles/parseTest.dat";
         ParserDriver instance = new ParserDriver(parseFile, parseTableFile);
+        instance.run();
         assert(!instance.parser.foundErrors());
     }
 
