@@ -69,8 +69,9 @@ public class Parser {
                 parseNextItem();
             }
             catch(ParserError error){
-                currentToken = lexDriver.getNextToken();
+                //currentToken = lexDriver.getNextToken();
                 System.err.println(error.getMessage());
+                currentToken = lexDriver.getNextToken();
             }
         }
     }
@@ -92,7 +93,7 @@ public class Parser {
     }
 
     public void parseNextItem()throws ParserError{
-        predicted = stack.pop();
+        predicted = stack.peek();
         /**if the predicted symbol is a non-terminal, index into the parse table to determine
          * if the production is valid.
          */
@@ -108,12 +109,15 @@ public class Parser {
             if(productionNumber == 999){
                 foundErrors = true;
                 //in order to try and continue analyzing the file for errors, get the next token and try to continue parsing
-                currentToken = lexDriver.getNextToken();
+                //currentToken = lexDriver.getNextToken();
                 throw ParserError.UnexpectedTokenException(currentToken, lexDriver);
+            }
+            else{
+                stack.pop();
             }
             /*negative numbers correlate to the empty string, so nothing should be pushed to the stack
             otherwise, the production is valid and we must push the right hand symbols onto the stack*/
-            else if (productionNumber > 0){
+            if (productionNumber > 0){
                 //index into the rhs table to get the correct set of symbols for the production
                 GrammarSymbol[] production = rhsTable.rules[productionNumber];
                 /*production symbols are sequenced in the array left to right. To push them onto the stack in the
@@ -130,6 +134,8 @@ public class Parser {
             //the predicted token type matched the token, continue to next token
             if(predicted == currentToken.getType()){
                 currentToken = lexDriver.getNextToken();
+                //once the token is matched, the next stack symbol should be evaluated
+                stack.pop();
             }
             //otherwise there is a mismatch, and an error must be thrown
             else{
@@ -141,7 +147,7 @@ public class Parser {
                 //get rid of the bad token
                 foundErrors = true;
                 //in order to try and continue analyzing the file for errors, get the next token and try to continue parsing
-                currentToken = lexDriver.getNextToken();
+                //currentToken = lexDriver.getNextToken();
                 throw ParserError.TokenMismatchException(predicted, currentToken, lexDriver);
             }
         }

@@ -14,7 +14,7 @@ public class TokenAssemblerTest {
      */
     @Test
     public void testOnLexTest(){
-        String testFile = "Src/Test/TestFiles/errorFreelextest.dat";//"/Users/Aaron/Projects/compiler/src/Test/TestFiles/errorFreelextest.dat";
+        String testFile = "Src/Test/TestFiles/errorFreelextest.dat";
         TokenAssembler instance = new TokenAssembler(testFile);
         //the sequence of correct tokens, sans exception-throwing lines
         TokenType[] expectedTokens = {TokenType.PROGRAM, TokenType.BEGIN, TokenType.END, TokenType.VAR,
@@ -75,7 +75,7 @@ public class TokenAssemblerTest {
      * tests getNextChar() on a file containing a single invalid character
      */
 
-
+    @Ignore
     @Test(expected = Exception.class)//LexicalError.class)
     public void testOnInvalid()throws LexicalError{
         String file = "/Users/Aaron/NetBeansProjects/Compiler/testData/^.dat";

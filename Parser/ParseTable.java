@@ -38,6 +38,7 @@ public class ParseTable {
                 table[x][y] = tempLineStorage.get(y)[x];
             }
         }
+
     }
 
 
@@ -72,6 +73,7 @@ public class ParseTable {
          */
         try {
             while ((currLine = reader.readLine()) != null) {
+
                 //only read lines that contain values
                 if(!currLine.isEmpty()) {
                     //trim whitespace and split on whitespace
@@ -84,6 +86,7 @@ public class ParseTable {
                     //add array of converted digits to the arrayList
                     lineStorage.add(convertedStrings);
                 }
+
             }
             reader.close();
         }
