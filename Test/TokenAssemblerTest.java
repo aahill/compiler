@@ -1,11 +1,15 @@
 package Test;
 
 import static org.junit.Assert.*;
+
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.Ignore;
 import LexicalAnalyzer.*;
 import GrammarSymbols.*;
 import CompilerError.*;
+import org.junit.rules.ExpectedException;
+
 import java.net.URL;
 public class TokenAssemblerTest {
 
@@ -75,17 +79,14 @@ public class TokenAssemblerTest {
      * tests getNextChar() on a file containing a single invalid character
      */
 
-    @Ignore
-    @Test(expected = Exception.class)//LexicalError.class)
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
+    @Test
     public void testOnInvalid()throws LexicalError{
+        exception.expect(LexicalError.class);
         String file = "/Users/Aaron/NetBeansProjects/Compiler/testData/^.dat";
         TokenAssembler instance = new TokenAssembler(file);
-        try {
-            instance.getNextToken();
-        }
-        catch(LexicalError err){
-            throw err;
-        }
+        instance.getNextToken();
     }
 
 }

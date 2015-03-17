@@ -7,7 +7,6 @@ import GrammarSymbols.Token;
  * @author Aaron
  */
 public class Driver {
-    private String file;
     public TokenAssembler lexer;
     private Token token;
 

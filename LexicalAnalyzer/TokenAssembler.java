@@ -74,32 +74,32 @@ public class TokenAssembler {
      * previous character becomes prevChar
      */
     public void getNextChar() throws LexicalError{
-        try{
+        //try{
             prevChar = currChar;
             currChar = charStream.currentChar();
-        }
-        catch (LexicalError ex){
-            System.err.println(ex.getMessage());
-            System.exit(1);
-        }
+        //}
+        //catch (LexicalError ex){
+        //    System.err.println(ex.getMessage());
+        //    System.exit(1);
+        //}
     }
     /**
      * reads in the next non blank (' ') char from charStream
      * stores as currChar
      */
-    public void getNextSignificantChar(){
+    public void getNextSignificantChar()throws LexicalError{
         char aChar = ' ';
-        try{
+        //try{
             while (aChar == ' '){
                 aChar = charStream.currentChar();
             }
             prevChar = currChar;
             currChar = aChar;
-        }
-        catch (LexicalError ex){
-            System.err.println(ex.getMessage());
-            System.exit(1);
-        }
+        //}
+        //catch (LexicalError ex){
+        //    System.err.println(ex.getMessage());
+        //    System.exit(1);
+        //}
     }
 
     public Token getNextToken()throws LexicalError{
