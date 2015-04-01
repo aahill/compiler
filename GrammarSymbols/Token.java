@@ -2,7 +2,7 @@ package GrammarSymbols;
 
 public class Token {
     public TokenType type;
-    public String value;
+    public Object value;
     /**
      * general constructor for a token
      * @param type the string value of the token
@@ -20,7 +20,7 @@ public class Token {
         this.value = lexeme;
     }
     public String getVal(){
-        return this.value;
+        return (String)this.value;
     }
 
     public TokenType getType(){
@@ -34,7 +34,7 @@ public class Token {
     //method to reclassify the value of the token
     public void reclassify(){
         //switch statement for keywords and symbols
-        switch(this.value.toLowerCase()){
+        switch(((String)this.value).toLowerCase()){
             case "array":
                 this.setType(TokenType.ARRAY);
                 break;
@@ -166,12 +166,14 @@ public class Token {
         //its type will still be null, and will be reclassified
         if(this.type == TokenType.NULL){
             //determines if the value is an integer constant
-            if(this.value.matches("(\\+|-)?\\d+")){
+            if(((String)this.value).matches("(\\+|-)?\\d+")){
                 this.setType(TokenType.INTCONSTANT);
+                this.value = Integer.parseInt((String)this.value);
             }
             //determines if the value is a real constant
-            else if(this.value.matches("(\\+|-)?\\d+\\.\\d+|(\\+|-)?\\d+.?\\d+e\\d+")){
+            else if(((String)this.value).matches("(\\+|-)?\\d+\\.\\d+|(\\+|-)?\\d+.?\\d+e\\d+")){
                 this.setType(TokenType.REALCONSTANT);
+                this.value = Float.parseFloat((String)this.value);
             }
             else{
                 this.setType(TokenType.IDENTIFIER);

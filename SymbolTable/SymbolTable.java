@@ -4,13 +4,13 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 
 public class SymbolTable {
-    private Hashtable table;
+    private Hashtable<String, SymbolTableEntry> table;
 
     public SymbolTable(int size){
-        this.table = new Hashtable(size);
+        this.table = new Hashtable<>(size);
     }
 
-    public Object lookup(String toLookup){
+    public SymbolTableEntry lookup(String toLookup){
 
         if(table.containsKey(toLookup)){
             return table.get(toLookup);
@@ -20,9 +20,9 @@ public class SymbolTable {
         }
     }
 
-    public Object insert(String toInsert){
-        table.put(toInsert,null);
-        return table.get(toInsert);
+    public Object insert(String identifier, SymbolTableEntry entry){
+        table.put(identifier,entry);
+        return table.get(identifier);
     }
 
     public void dumpTable(){
