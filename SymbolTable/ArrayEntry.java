@@ -16,7 +16,7 @@ public class ArrayEntry extends SymbolTableEntry{
         this.lowerBound = lowerBound;
         this.upperBound = upperBound;
     }
-
+    @Override
     public void print () {
 
         System.out.println("Array Entry:");

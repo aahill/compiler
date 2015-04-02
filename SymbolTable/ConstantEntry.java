@@ -11,6 +11,7 @@ public class ConstantEntry extends SymbolTableEntry{
         super(name, type);
     }
 
+    @Override
     public void print() {
 
         System.out.println("Constant Entry:");

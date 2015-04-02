@@ -29,4 +29,9 @@ public class SymbolTableEntry {
         return this.type;
     }
 
+    //default print statement to be overloaded by subclass
+    public void print(){
+        System.out.println("<IDENTIFIER : IDENTIFIER_VALUE>");
+    }
+
 }

@@ -32,8 +32,10 @@ public class SymbolTable {
             //get the next variable in the table
             String identifier = (String)tableValues.nextElement();
             //get the value of the variable
-            Object identifierValue = table.get(identifier);
-            System.out.println("identifier:" + identifier + " : " + identifierValue);
+            SymbolTableEntry identifierValue = table.get(identifier);
+            //System.out.println("identifier:" + identifier + " : " + identifierValue);
+            identifierValue.print();
+
         }
 
     }

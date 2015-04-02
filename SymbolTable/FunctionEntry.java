@@ -15,6 +15,7 @@ public class FunctionEntry extends SymbolTableEntry{
         this.result = result;
     }
 
+    @Override
     public void print () {
         System.out.println("Array Entry:");
         System.out.println(" Name                 : " + this.getName());
