@@ -2,7 +2,7 @@ package GrammarSymbols;
 
 public class Token {
     public TokenType type;
-    public Object value;
+    public String value;
     /**
      * general constructor for a token
      * @param type the string value of the token
@@ -20,7 +20,7 @@ public class Token {
         this.value = lexeme;
     }
     public String getVal(){
-        return (String)this.value;
+        return this.value;
     }
 
     public TokenType getType(){
@@ -168,12 +168,10 @@ public class Token {
             //determines if the value is an integer constant
             if(((String)this.value).matches("(\\+|-)?\\d+")){
                 this.setType(TokenType.INTCONSTANT);
-                this.value = Integer.parseInt((String)this.value);
             }
             //determines if the value is a real constant
             else if(((String)this.value).matches("(\\+|-)?\\d+\\.\\d+|(\\+|-)?\\d+.?\\d+e\\d+")){
                 this.setType(TokenType.REALCONSTANT);
-                this.value = Float.parseFloat((String)this.value);
             }
             else{
                 this.setType(TokenType.IDENTIFIER);

@@ -20,9 +20,9 @@ public class SymbolTable {
         }
     }
 
-    public Object insert(String identifier, SymbolTableEntry entry){
-        table.put(identifier,entry);
-        return table.get(identifier);
+    public Object insert(SymbolTableEntry entry){
+        table.put(entry.getName(),entry);
+        return table.get(entry.getName());
     }
 
     public void dumpTable(){
