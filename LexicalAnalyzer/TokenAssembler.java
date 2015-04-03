@@ -352,7 +352,7 @@ public class TokenAssembler {
             }
             //NOTE: one occurance of the letter 'e', along with *ONLY* digits
             //is permissable for the purpose of exponential notation
-            else if (currChar == 'e' && lexemeString.indexOf('e') == -1){
+            else if ((currChar == 'e' || currChar == 'E') && lexemeString.indexOf('e') == -1){
                 getNextChar();
                 //the 'e' must be followed by a digit
                 if(Character.isDigit(currChar)){
