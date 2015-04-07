@@ -7,10 +7,6 @@ public class SymbolTableEntry {
     private TokenType type;
 
     //basic constructor
-    public SymbolTableEntry(){
-    }
-
-    //basic constructor
     public SymbolTableEntry(String name){
         this.name = name;
     }
@@ -31,7 +27,7 @@ public class SymbolTableEntry {
 
     //default print statement to be overloaded by subclass
     public void print(){
-        System.out.println("<IDENTIFIER : IDENTIFIER_VALUE>");
+        System.out.println("<ENTRY : ENTRY_VALUE>");
     }
 
 }

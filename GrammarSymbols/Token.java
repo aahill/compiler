@@ -170,7 +170,7 @@ public class Token {
                 this.setType(TokenType.INTCONSTANT);
             }
             //determines if the value is a real constant
-            else if(((String)this.value).matches("(\\+|-)?\\d+\\.\\d+|(\\+|-)?\\d+.?\\d+e\\d+")){
+            else if(((String)this.value).matches("(\\+|-)?\\d+\\.\\d+|(\\+|-)?\\d+.?\\d+(e|E)\\d+")){
                 this.setType(TokenType.REALCONSTANT);
             }
             else{

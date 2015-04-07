@@ -94,7 +94,8 @@ public class Parser {
 
     public void parseNextItem()throws ParserError{
         predicted = stack.peek();
-        /**if the predicted symbol is a non-terminal, index into the parse table to determine
+        /**
+         * if the predicted symbol is a non-terminal, index into the parse table to determine
          * if the production is valid.
          */
         if(predicted.isNonTerminal()){

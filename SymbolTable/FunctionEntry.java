@@ -5,9 +5,6 @@ public class FunctionEntry extends SymbolTableEntry{
     String parameterInfo;
     String result;
 
-    public FunctionEntry(){
-    }
-
     public FunctionEntry(String name, int numberOfParameters, String parameterInfo, String result){
         super(name);
         this.numberOfParameters = numberOfParameters;
@@ -17,7 +14,7 @@ public class FunctionEntry extends SymbolTableEntry{
 
     @Override
     public void print () {
-        System.out.println("Array Entry:");
+        System.out.println("Function Entry:");
         System.out.println(" Name                 : " + this.getName());
         System.out.println(" Number of parameters : " + this.getNumberOfParameters());
         System.out.println(" Parameter Info       : " + this.getParameterInfo());
@@ -25,18 +22,22 @@ public class FunctionEntry extends SymbolTableEntry{
         System.out.println();
     }
 
+    //returns the number of parameters in the function entry
     public int getNumberOfParameters(){
         return numberOfParameters;
     }
 
+    //sets the number of parameters
     public void setNumberOfParameters(int numberOfParameters){
         this.numberOfParameters = numberOfParameters;
     }
 
+    //returns the parameter info
     public String getParameterInfo(){
         return parameterInfo;
     }
 
+    //returns the result of the function
     public String getResult(){
         return result;
     }

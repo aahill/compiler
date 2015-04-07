@@ -7,15 +7,13 @@ public class ArrayEntry extends SymbolTableEntry{
     int lowerBound;
     int upperBound;
 
-    public ArrayEntry(){
-    }
-
     public ArrayEntry(String name, int address, TokenType type, int lowerBound, int upperBound){
         super(name, type);
         this.address = address;
         this.lowerBound = lowerBound;
         this.upperBound = upperBound;
     }
+    //overriding base-class print method
     @Override
     public void print () {
 

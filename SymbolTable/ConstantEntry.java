@@ -4,9 +4,6 @@ import GrammarSymbols.TokenType;
 
 public class ConstantEntry extends SymbolTableEntry{
 
-    public ConstantEntry(){
-    }
-
     public ConstantEntry(String name, TokenType type) {
         super(name, type);
     }

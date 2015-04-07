@@ -13,9 +13,6 @@ public class VariableEntry extends SymbolTableEntry {
      boolean parm = false, functionResult = false, reserved = false;
      **************************************************************/
 
-    public VariableEntry() {
-    }
-
     public VariableEntry(String Name) {
         super(Name);
     }
