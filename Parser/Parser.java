@@ -1,6 +1,8 @@
 package Parser;
 
 import CompilerError.ParserError;
+import CompilerError.SemanticError;
+import SemanticActions.SemanticManager;
 import GrammarSymbols.*;
 import LexicalAnalyzer.*;
 import java.util.Stack;
@@ -13,6 +15,7 @@ public class Parser {
     private GrammarSymbol predicted;
     private ParseTable parseTable;
     private RHSTable rhsTable;
+    public SemanticManager semanticManager;
     //determines if the parser should run methods aiding debugging (i.e. dumping the stack)
     private boolean testMode;
     //determines whether the parser detected errors during the parse
@@ -25,6 +28,7 @@ public class Parser {
      */
     public Parser(String inputFile, String parseTableFile){
         //initializations
+        this.semanticManager = new SemanticManager(50);
         this.lexDriver = new Driver(inputFile);
         this.stack = new Stack<>();
         try {
@@ -58,18 +62,12 @@ public class Parser {
         parser.setTestMode(testing);
     }
 
-    /**
-     * continually calls the parseNextItem method until either the stack is empty(signifying a successful parse) or
-     * an exception is thrown
-     * @throws CompilerError.ParserError
-     */
     public void parse(){
         while(!stack.empty()){
             try {
                 parseNextItem();
             }
             catch(ParserError error){
-                //currentToken = lexDriver.getNextToken();
                 System.err.println(error.getMessage());
                 currentToken = lexDriver.getNextToken();
             }
@@ -124,9 +122,7 @@ public class Parser {
                 /*production symbols are sequenced in the array left to right. To push them onto the stack in the
                 correct order, the list must be iterated through in reverse order*/
                 for(int i = production.length-1; i >= 0; i--){
-                    if(!production[i].isAction()) {
-                        stack.push(production[i]);
-                    }
+                    stack.push(production[i]);
                 }
             }
         }
@@ -134,9 +130,17 @@ public class Parser {
             //try a match move
             //the predicted token type matched the token, continue to next token
             if(predicted == currentToken.getType()){
+                stack.pop();
+                //to ensure that possible semantic actions get called on the correct token, the next stack item
+                // (assuming the stack is not empty) must be checked, and executed if necesarry
+                if(!stack.empty()) {
+                    if (stack.peek().isAction()) {
+                        executeAction();
+                    }
+                }
                 currentToken = lexDriver.getNextToken();
                 //once the token is matched, the next stack symbol should be evaluated
-                stack.pop();
+
             }
             //otherwise there is a mismatch, and an error must be thrown
             else{
@@ -152,6 +156,30 @@ public class Parser {
                 throw ParserError.TokenMismatchException(predicted, currentToken, lexDriver);
             }
         }
+        //If the next item is a semantic action, it must be executed and then popped off of the stack
+        else if(predicted.isAction()){
+            try {
+                semanticManager.Execute((SemanticAction) predicted, currentToken);
+                stack.pop();
+
+            }
+            catch(SemanticError semanticError){
+                System.err.print(semanticError.getMessage());
+            }
+
+        }
+
+    }
+
+    public void executeAction(){
+        predicted = stack.peek();
+        try {
+            semanticManager.Execute((SemanticAction) predicted, currentToken);
+        }
+        catch (SemanticError semanticError) {
+            System.err.print(semanticError.getMessage());
+        }
+        stack.pop();
     }
 
     /**

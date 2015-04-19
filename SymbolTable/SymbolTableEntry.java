@@ -27,7 +27,9 @@ public class SymbolTableEntry {
 
     //default print statement to be overloaded by subclass
     public void print(){
-        System.out.println("<ENTRY : ENTRY_VALUE>");
+        System.out.println("Generic Entry:");
+        System.out.println(" Name : " + this.getName());
+        System.out.println(" Type : " + this.getType());
     }
 
 }

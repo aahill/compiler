@@ -9,6 +9,13 @@ public class SymbolTable {
     //default constructor for creating sized hashtable
     public SymbolTable(int size){
         this.table = new Hashtable<>(size);
+        //symbol table built in types
+        ProcedureEntry mainEntry = new ProcedureEntry("main", 0);
+        ProcedureEntry readEntry = new ProcedureEntry("read");
+        ProcedureEntry writeEntry = new ProcedureEntry("write");
+        this.table.put("main",mainEntry);
+        this.table.put("read", readEntry);
+        this.table.put("write", writeEntry);
     }
 
     /**

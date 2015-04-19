@@ -7,6 +7,12 @@ public class ArrayEntry extends SymbolTableEntry{
     int lowerBound;
     int upperBound;
 
+    public ArrayEntry(String name){
+        super(name);
+    }
+    public ArrayEntry(String name, TokenType type){
+        super(name, type);
+    }
     public ArrayEntry(String name, int address, TokenType type, int lowerBound, int upperBound){
         super(name, type);
         this.address = address;
@@ -28,10 +34,19 @@ public class ArrayEntry extends SymbolTableEntry{
     public int getLowerBound(){
         return lowerBound;
     }
+    public void setLowerBound(int newLowerBound){
+        this.lowerBound = newLowerBound;
+    }
     public int getUpperBound(){
         return upperBound;
     }
+    public void setUpperBound(int newUpperBound){
+        this.upperBound = newUpperBound;
+    }
     public int getAddress(){
         return address;
+    }
+    public void setAddress(int newAddress){
+        this.address = newAddress;
     }
 }
