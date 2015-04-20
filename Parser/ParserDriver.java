@@ -1,7 +1,5 @@
 package Parser;
 
-import CompilerError.*;
-
 public class ParserDriver {
 
     public Parser parser;
@@ -34,7 +32,5 @@ public class ParserDriver {
         String toParse = "Src/Test/TestFiles/semanticActiontest1.dat";
         ParserDriver test = new ParserDriver(toParse, parseTableFile);
         test.run();
-        //test.parser.semanticManager.dumpStack();
-        test.parser.semanticManager.localTable.dumpTable();
     }
 }

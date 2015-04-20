@@ -2,7 +2,7 @@ package Parser;
 
 import CompilerError.ParserError;
 import CompilerError.SemanticError;
-import SemanticActions.SemanticManager;
+import SemanticActions.SemanticActions;
 import GrammarSymbols.*;
 import LexicalAnalyzer.*;
 import java.util.Stack;
@@ -15,7 +15,7 @@ public class Parser {
     private GrammarSymbol predicted;
     private ParseTable parseTable;
     private RHSTable rhsTable;
-    public SemanticManager semanticManager;
+    public SemanticActions semanticActions;
     //determines if the parser should run methods aiding debugging (i.e. dumping the stack)
     private boolean testMode;
     //determines whether the parser detected errors during the parse
@@ -28,7 +28,7 @@ public class Parser {
      */
     public Parser(String inputFile, String parseTableFile){
         //initializations
-        this.semanticManager = new SemanticManager(50);
+        this.semanticActions = new SemanticActions();
         this.lexDriver = new Driver(inputFile);
         this.stack = new Stack<>();
         try {
@@ -159,7 +159,7 @@ public class Parser {
         //If the next item is a semantic action, it must be executed and then popped off of the stack
         else if(predicted.isAction()){
             try {
-                semanticManager.Execute((SemanticAction) predicted, currentToken);
+                semanticActions.Execute((SemanticAction) predicted, currentToken);
                 stack.pop();
 
             }
@@ -174,7 +174,7 @@ public class Parser {
     public void executeAction(){
         predicted = stack.peek();
         try {
-            semanticManager.Execute((SemanticAction) predicted, currentToken);
+            semanticActions.Execute((SemanticAction) predicted, currentToken);
         }
         catch (SemanticError semanticError) {
             System.err.print(semanticError.getMessage());
