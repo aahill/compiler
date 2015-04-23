@@ -28,9 +28,10 @@ public class ParserDriver {
     public static void main(String[] args)
     {
         String parseTableFile = "Src/Test/TestFiles/parseTable.dat";
-        //String toParse = "Src/Test/TestFiles/parseTest.dat";
+        //String toParse = "Src/Test/TestFiles/semanticActionArrayTest.dat";
         String toParse = "Src/Test/TestFiles/semanticActiontest1.dat";
         ParserDriver test = new ParserDriver(toParse, parseTableFile);
         test.run();
+        //test.parser.semanticActions.globalTable.dumpTable();
     }
 }

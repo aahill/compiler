@@ -10,8 +10,7 @@ import SymbolTable.*;
 public class SemanticActions {
 
     private Stack<Object> semanticStack;
-    //	Quadruples not used until Phase 2
-//	private Quadruples quads ;
+	private Quadruple quads ;
     private boolean insert;
     private boolean isArray;
     private boolean global;
@@ -23,6 +22,7 @@ public class SemanticActions {
 
 
     public SemanticActions() {
+        int tableSize = 53;
         semanticStack = new Stack<Object>();
 //		quads = new Quadruples();
         insert = false;
@@ -31,16 +31,16 @@ public class SemanticActions {
         global = true;
         globalMemory = 0;
         localMemory = 0;
-//        globalTable = new SymbolTable(tableSize);
-//        constantTable = new SymbolTable(tableSize);
-//        localTable = new SymbolTable(tableSize);
+        globalTable = new SymbolTable(tableSize);
+        constantTable = new SymbolTable(tableSize);
+        localTable = new SymbolTable(tableSize);
     }
 
     public void Execute(SemanticAction action, Token token) throws SemanticError {
 
         int actionNumber = action.getIndex();
 
-        System.out.println("calling action : " + actionNumber + " with token " + token.getType());
+        System.out.println("calling action : " + actionNumber + " with token " + token.getType() + ", " + token.getVal());
 
         switch (actionNumber) {
             //INSERT/SEARCH = INSERT
@@ -59,6 +59,7 @@ public class SemanticActions {
             case 3:{
                 //case for an array variable
                 if(isArray){
+                    Token typ = (Token)semanticStack.pop();
                     //lb and ub values are stored in tokens, and must be popped from the stack
                     Token ubToken = (Token)semanticStack.pop();
                     Token lbToken = (Token)semanticStack.pop();
@@ -72,7 +73,7 @@ public class SemanticActions {
                         if (((Token) semanticStack.peek()).getType() == TokenType.IDENTIFIER) {
                             Token id_token = (Token)semanticStack.pop();
                             String token_name = id_token.getVal();
-                            TokenType token_type = id_token.getType();
+                            TokenType token_type = typ.getType();
                             ArrayEntry newEntry = new ArrayEntry(token_name, token_type);
                             //case for if the variable gets stored in the global symbol table
                             if (global) {
@@ -139,12 +140,14 @@ public class SemanticActions {
             case 7: {
                 semanticStack.push(token);
                 //assert (token.getType() == TokenType.INTCONSTANT || token.getType() == TokenType.REALCONSTANT);
+                break;
             }
 
             //push id
             case 13: {
                 semanticStack.push(token);
                 //assert (token.getType() == TokenType.IDENTIFIER);
+                break;
             }
 
 
@@ -153,7 +156,7 @@ public class SemanticActions {
     /**
      * dumps the contents of the stack
      */
-    public void dumpStack(){
+    public void dumpSemanticStack(){
         System.out.println("DUMPING SEMANTIC STACK!\n +" + "/------------------------------");
         int stackIndex = 0;
         while(!semanticStack.isEmpty()){
@@ -161,4 +164,31 @@ public class SemanticActions {
             stackIndex += 1;
         }
     }
+    private void generate (String tviCode, SymbolTableEntry operand1, SymbolTableEntry operand2, SymbolTableEntry operand3){
+        String[] newInstruction = {tviCode, operand1.getName(), operand2.getName(), operand3.getName()};
+        quads.addQuad(newInstruction);
+        quads.incrementNextQuad();
+    }
+    public void generate(String tviCode,SymbolTableEntry operand1, String operand2){
+        String[] newInstruction = {tviCode, operand1.getName(), operand2};
+        quads.addQuad(newInstruction);
+        quads.incrementNextQuad();
+    }
+    public void generate(String tviCode,SymbolTableEntry operand1, SymbolTableEntry operand2){
+        String[] newInstruction = {tviCode, operand1.getName(), operand2.getName()};
+        quads.addQuad(newInstruction);
+        quads.incrementNextQuad();
+    }
+    public void generate(String tviCode, String operand1, SymbolTableEntry operand2){
+        String[] newInstruction = {tviCode, operand1, operand2.getName()};
+        quads.addQuad(newInstruction);
+        quads.incrementNextQuad();
+    }
+    public void generate(String tviCode, String operand1){
+        String[] newInstruction = {tviCode, operand1};
+        quads.addQuad(newInstruction);
+        quads.incrementNextQuad();
+
+    }
+
 }

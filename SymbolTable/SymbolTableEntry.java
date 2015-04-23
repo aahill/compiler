@@ -5,6 +5,7 @@ import GrammarSymbols.*;
 public class SymbolTableEntry {
     private String name;
     private TokenType type;
+    private Boolean restricted;
 
     //basic constructor
     public SymbolTableEntry(String name){
@@ -15,6 +16,8 @@ public class SymbolTableEntry {
     public SymbolTableEntry(String name, TokenType type){
         this.name = name;
         this.type = type;
+        // entries are not restricted by default
+        this.restricted = false;
     }
 
     public String getName(){
@@ -23,6 +26,10 @@ public class SymbolTableEntry {
 
     public TokenType getType(){
         return this.type;
+    }
+
+    public void setRestricted(Boolean isRestricted){
+        this.restricted = isRestricted;
     }
 
     //default print statement to be overloaded by subclass
