@@ -45,13 +45,15 @@ public class Quadruple {
 
     //Print the Quadruple array
     public void print(){
+        int quadIndex = 0;
         System.out.println();
         for(String[] quad: this.quadruple) {
-            System.out.println("NEW QUAD:");
+            System.out.print(quadIndex+ " ");
             for(String field : quad) {
-                System.out.print(field);
+                System.out.print(field + " ");
             }
             System.out.println();
+            quadIndex += 1;
         }
     }
 }

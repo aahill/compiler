@@ -16,6 +16,9 @@ public class SemanticActions {
     private boolean global;
     private int globalMemory;
     private int localMemory;
+    private int varCounter;
+    private int globalStore;
+    private int localStore;
     public SymbolTable globalTable;
     private SymbolTable constantTable;
     public SymbolTable localTable;
@@ -24,16 +27,53 @@ public class SemanticActions {
     public SemanticActions() {
         int tableSize = 53;
         semanticStack = new Stack<Object>();
-//		quads = new Quadruples();
+		quads = new Quadruple();
         insert = false;
         isArray = false;
 //        isParm = false;
         global = true;
         globalMemory = 0;
         localMemory = 0;
+        varCounter += 1;
         globalTable = new SymbolTable(tableSize);
         constantTable = new SymbolTable(tableSize);
         localTable = new SymbolTable(tableSize);
+    }
+
+    public VariableEntry create(String name, TokenType type){
+        VariableEntry newVar = new VariableEntry("$$"+name, type);
+        if(global){
+            newVar.setAddress(globalMemory * -1);
+            globalTable.insert(newVar);
+        }
+        else{
+            newVar.setAddress(localMemory * -1);
+            localTable.insert(newVar);
+        }
+        return newVar;
+    }
+
+    public int typeCheck(SymbolTableEntry id1, SymbolTableEntry id2){
+
+        if(id1.getType() == TokenType.INTCONSTANT && id2.getType() == TokenType.INTCONSTANT ||
+                id1.getType() == TokenType.INTEGER && id2.getType() == TokenType.INTEGER){
+            return 0;
+        }
+        else if(id1.getType() == TokenType.REALCONSTANT && id2.getType() == TokenType.REALCONSTANT){
+            return 1;
+        }
+
+        else if(id1.getType() == TokenType.REALCONSTANT && id2.getType() == TokenType.INTCONSTANT){
+            return 2;
+        }
+
+        else if(id1.getType() == TokenType.INTCONSTANT && id2.getType() == TokenType.REALCONSTANT){
+            return 3;
+        }
+        //default return case indicates error?
+        else{
+            return -1;
+        }
     }
 
     public void Execute(SemanticAction action, Token token) throws SemanticError {
@@ -143,10 +183,125 @@ public class SemanticActions {
                 break;
             }
 
+            case 9:{
+                while(!semanticStack.empty() && (semanticStack.peek() instanceof Token)) {
+                    //ensure that the next item on the semantic stack is an Identifier Token
+                    if (((Token) semanticStack.peek()).getType() == TokenType.IDENTIFIER) {
+                        Token id = (Token)semanticStack.pop();
+                        VariableEntry idEntry = new VariableEntry(id.getVal());
+                        idEntry.setRestricted(true);
+                        if(global){
+                            globalTable.insert(idEntry);
+                        }
+                        else{
+                            localTable.insert(idEntry);
+                        }
+                    }
+                }
+                insert = false;
+                generate("CODE");
+                generate("CALL",globalTable.lookup("main"),"0");
+                generate("exit");
+                break;
+            }
+
             //push id
             case 13: {
                 semanticStack.push(token);
                 //assert (token.getType() == TokenType.IDENTIFIER);
+                break;
+            }
+
+            case 30: {
+                assert token.getType() == TokenType.IDENTIFIER;
+                if(global){
+                    if (globalTable.lookup(token.getVal()) == null){
+                        throw SemanticError.VariableNotFoundException(token);
+                    }
+                }
+                else {
+                    if (globalTable.lookup(token.getVal()) == null) {
+                        throw SemanticError.VariableNotFoundException(token);
+                    }
+                }
+                semanticStack.push(token);
+                break;
+            }
+
+            case 40:{
+                semanticStack.push(token);
+                break;
+            }
+
+            case 42:{
+                EType eType = (EType)semanticStack.pop();
+                if (token.getType() == TokenType.RELOP && token.getVal().toLowerCase().equals("or")) {
+                    if (eType == EType.relational){
+                        throw SemanticError.IllegalETypeException();
+                    }
+                }
+                else{
+                    if(eType == EType.arithmetic){
+                        semanticStack.push(token);
+                    }
+
+                }
+                semanticStack.push(token);
+                break;
+            }
+
+            case 43:{
+                SymbolTableEntry id1 = (SymbolTableEntry)semanticStack.pop();
+                SymbolTableEntry id2 = (SymbolTableEntry)semanticStack.pop();
+                Token operator = (Token)semanticStack.pop();
+                EType eType = (EType)semanticStack.pop();
+
+                if(eType == EType.relational){
+                }
+                else{
+                    if(eType != EType.arithmetic){
+                        throw SemanticError.IllegalETypeException();
+                    }
+                    if (typeCheck(id1, id2) == 0 ){
+                       VariableEntry tempVar = create("temp"+varCounter, TokenType.INTEGER);
+                       generate(operator.getVal(), id1, id2, tempVar);
+                        varCounter += 1;
+                        semanticStack.push(tempVar);
+                    }
+                    else if (typeCheck(id1, id2) == 1 ){
+                        VariableEntry tempVar = create("temp"+varCounter, TokenType.REAL);
+                        generate(operator.getVal(), id1, id2, tempVar);
+                        varCounter += 1;
+                        semanticStack.push(tempVar);
+                    }
+                    else if (typeCheck(id1, id2) == 2 ){
+                        VariableEntry tempVar = create("temp"+varCounter, TokenType.REAL);
+                        generate("ltof", id1, id2, tempVar);
+                        varCounter += 1;
+                        VariableEntry tempVar2 = create("temp"+varCounter, TokenType.REAL);
+                        generate(operator.getVal(),id1,tempVar, tempVar2);
+                        varCounter += 1;
+                        semanticStack.push(tempVar2);
+                    }
+                    else if (typeCheck(id1, id2) == 3){
+                        VariableEntry tempVar = create("temp"+varCounter, TokenType.REAL);
+                        generate("ltof", id1, tempVar);
+                        varCounter += 1;
+                        semanticStack.push(tempVar);
+                    }
+                    semanticStack.push(EType.arithmetic);
+                }
+
+            }
+
+            case 56:{
+                generate("PROCBEGIN", globalTable.lookup("main"));
+                globalStore = quads.getNextQuad();
+                //generate("alloc",)
+            }
+
+            default:{
+                System.out.println("action not implemented (yet)");
                 break;
             }
 
@@ -164,22 +319,73 @@ public class SemanticActions {
             stackIndex += 1;
         }
     }
-    private void generate (String tviCode, SymbolTableEntry operand1, SymbolTableEntry operand2, SymbolTableEntry operand3){
+    private void generate (String tviCode){
+        String[] newInstruction = {tviCode};
+        quads.addQuad(newInstruction);
+        quads.incrementNextQuad();
+    }
+    private void generate (String tviCode, SymbolTableEntry operand1, SymbolTableEntry operand2, SymbolTableEntry operand3) {
+        if(operand1 instanceof ConstantEntry){
+            SymbolTableEntry tempVar = create("temp"+varCounter, operand2.getType());
+            generate("move"+operand2.getName(), tempVar);
+            varCounter += 1;
+        }
+        if(operand2 instanceof ConstantEntry){
+            SymbolTableEntry tempVar = create("temp"+varCounter, operand2.getType());
+            generate("move"+operand2.getName(), tempVar);
+            varCounter += 1;
+        }
+        if(operand3 instanceof ConstantEntry){
+            SymbolTableEntry tempVar = create("temp"+varCounter, operand3.getType());
+            generate("move"+operand3.getName(), tempVar);
+            varCounter += 1;
+        }
         String[] newInstruction = {tviCode, operand1.getName(), operand2.getName(), operand3.getName()};
         quads.addQuad(newInstruction);
         quads.incrementNextQuad();
     }
+
+    public void generate(String tviCode, String operand1, String operand2, SymbolTableEntry operand3){
+        if(operand3 instanceof ConstantEntry){
+            SymbolTableEntry tempVar = create("temp"+varCounter, operand3.getType());
+            generate("move"+operand3.getName(), tempVar);
+            varCounter += 1;
+        }
+        String[] newInstruction = {tviCode, operand1, operand2, operand3.getName()};
+        quads.addQuad(newInstruction);
+        quads.incrementNextQuad();
+    }
     public void generate(String tviCode,SymbolTableEntry operand1, String operand2){
+        if(operand1 instanceof ConstantEntry){
+            SymbolTableEntry tempVar = create("temp"+varCounter, operand1.getType());
+            generate("move"+operand1.getName(), tempVar);
+            varCounter += 1;
+        }
         String[] newInstruction = {tviCode, operand1.getName(), operand2};
         quads.addQuad(newInstruction);
         quads.incrementNextQuad();
     }
     public void generate(String tviCode,SymbolTableEntry operand1, SymbolTableEntry operand2){
+        if(operand2 instanceof ConstantEntry){
+            SymbolTableEntry tempVar = create("temp"+varCounter, operand2.getType());
+            generate("move"+operand2.getName(), tempVar);
+            varCounter += 1;
+        }
+        if(operand1 instanceof ConstantEntry){
+            SymbolTableEntry tempVar = create("temp"+varCounter, operand1.getType());
+            generate("move"+operand1.getName(), tempVar);
+            varCounter += 1;
+        }
         String[] newInstruction = {tviCode, operand1.getName(), operand2.getName()};
         quads.addQuad(newInstruction);
         quads.incrementNextQuad();
     }
     public void generate(String tviCode, String operand1, SymbolTableEntry operand2){
+        if(operand2 instanceof ConstantEntry){
+            SymbolTableEntry tempVar = create("temp"+varCounter, operand2.getType());
+            generate("move"+operand2.getName(), tempVar);
+            varCounter += 1;
+        }
         String[] newInstruction = {tviCode, operand1, operand2.getName()};
         quads.addQuad(newInstruction);
         quads.incrementNextQuad();
@@ -190,5 +396,18 @@ public class SemanticActions {
         quads.incrementNextQuad();
 
     }
+    public void generate(String tviCode, SymbolTableEntry operand1){
+        if(operand1 instanceof ConstantEntry){
+            SymbolTableEntry tempVar = create("temp"+varCounter, operand1.getType());
+            generate("move"+operand1.getName(), tempVar);
+            varCounter += 1;
+        }
+        String[] newInstruction = {tviCode, operand1.getName()};
+        quads.addQuad(newInstruction);
+        quads.incrementNextQuad();
 
+    }
+    public void printQuads(){
+        this.quads.print();
+    }
 }

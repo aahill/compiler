@@ -10,6 +10,7 @@ public class SymbolTableEntry {
     //basic constructor
     public SymbolTableEntry(String name){
         this.name = name;
+        this.restricted = false;
     }
 
     //constructor for when identifier corresponds to a constant type
