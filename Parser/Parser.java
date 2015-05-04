@@ -71,6 +71,10 @@ public class Parser {
                 System.err.println(error.getMessage());
                 currentToken = lexDriver.getNextToken();
             }
+            catch(SemanticError error){
+                System.err.println(error.getMessage());
+                System.exit(1);
+            }
         }
     }
 
@@ -90,7 +94,7 @@ public class Parser {
         return this.foundErrors;
     }
 
-    public void parseNextItem()throws ParserError{
+    public void parseNextItem()throws ParserError, SemanticError{
         predicted = stack.peek();
         /**
          * if the predicted symbol is a non-terminal, index into the parse table to determine
@@ -171,14 +175,14 @@ public class Parser {
 
     }
 
-    public void executeAction(){
+    public void executeAction() throws SemanticError{
         predicted = stack.peek();
-        try {
+        //try {
             semanticActions.Execute((SemanticAction) predicted, currentToken);
-        }
-        catch (SemanticError semanticError) {
-            System.err.print(semanticError.getMessage());
-        }
+        //}
+        //catch (SemanticError semanticError) {
+        //    System.err.print(semanticError.getMessage());
+        //}
         stack.pop();
     }
 

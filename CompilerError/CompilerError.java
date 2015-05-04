@@ -10,7 +10,7 @@ public abstract class CompilerError extends Exception
      */
     public enum Type {TEST, BAD_COMMENT, ILLEGAL_CHARACTER, UNTERMINATED_COMMENT,
         IDENTIFIER_TOO_LONG, CONSTANT_TOO_LONG, UNEXPECTED_TOKEN, PARSE_TABLE_ERROR,
-        TOKEN_MISMATCH, VARIABLE_NOT_FOUND, ILLEGAL_ETYPE};
+        TOKEN_MISMATCH, VARIABLE_NOT_FOUND, ILLEGAL_ETYPE, MOD_OPERANDS_NOT_INTS, ILLEGAL_INDEX};
 
     /** The type of error represented by this object.  This field is declared
      * as final and must be set in the constructor.

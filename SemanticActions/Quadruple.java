@@ -48,10 +48,11 @@ public class Quadruple {
         int quadIndex = 0;
         System.out.println();
         for(String[] quad: this.quadruple) {
-            System.out.print(quadIndex+ " ");
-            for(String field : quad) {
-                System.out.print(field + " ");
+            System.out.print(quadIndex + " ");
+            for(int i = 0; i < quad.length - 1; i++){
+                System.out.print(quad[i] + ", ");
             }
+            System.out.print(quad[quad.length-1]);
             System.out.println();
             quadIndex += 1;
         }
