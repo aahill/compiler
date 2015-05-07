@@ -24,5 +24,9 @@ public class SemanticError extends CompilerError {
         return new SemanticError(Type.ILLEGAL_INDEX,
                 "ERROR, attemped access with illegal index");
     }
+    public static SemanticError GenericError(){
+        return new SemanticError(Type.TEST,
+                "GENERIC ERROR, MUST REPLACE");
+    }
 
 }

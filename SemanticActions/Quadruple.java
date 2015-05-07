@@ -47,10 +47,13 @@ public class Quadruple {
     public void print(){
         int quadIndex = 0;
         System.out.println();
-        for(String[] quad: this.quadruple) {
+        //the first element in the quadruples array is always the CODE quad
+        System.out.println(this.quadruple.get(0)[0]);
+        for(int i = 1; i < this.quadruple.size(); i++) {
+            String[] quad = quadruple.get(i);
             System.out.print(quadIndex + " ");
-            for(int i = 0; i < quad.length - 1; i++){
-                System.out.print(quad[i] + ", ");
+            for(int i2 = 0; i2 < quad.length - 1; i2++){
+                System.out.print(quad[i2] + ", ");
             }
             System.out.print(quad[quad.length-1]);
             System.out.println();

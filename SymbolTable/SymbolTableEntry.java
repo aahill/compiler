@@ -6,6 +6,7 @@ public class SymbolTableEntry {
     private String name;
     private TokenType type;
     private Boolean restricted;
+    private int address;
 
     //basic constructor
     public SymbolTableEntry(String name){
@@ -27,6 +28,10 @@ public class SymbolTableEntry {
 
     public TokenType getType(){
         return this.type;
+    }
+
+    public int getAddress(){
+        return this.address;
     }
 
     public void setRestricted(Boolean isRestricted){
