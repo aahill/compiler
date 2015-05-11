@@ -34,6 +34,18 @@ public class SymbolTableEntry {
         return this.address;
     }
 
+    public boolean isConstant(){
+        if(this.getType() == TokenType.INTEGER ||
+                this.getType() == TokenType.INTCONSTANT ||
+                this.getType() == TokenType.REAL ||
+                this.getType() == TokenType.REALCONSTANT){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
     public void setRestricted(Boolean isRestricted){
         this.restricted = isRestricted;
     }

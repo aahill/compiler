@@ -2,7 +2,7 @@ package Parser;
 
 import CompilerError.ParserError;
 import CompilerError.SemanticError;
-import SemanticActions.SemanticActions;
+import SemanticActions.*;
 import GrammarSymbols.*;
 import LexicalAnalyzer.*;
 import java.util.Stack;
@@ -169,6 +169,7 @@ public class Parser {
             }
             catch(SemanticError semanticError){
                 System.err.print(semanticError.getMessage());
+                semanticActions.quads.print();
             }
 
         }

@@ -51,9 +51,14 @@ public class Quadruple {
         System.out.println(this.quadruple.get(0)[0]);
         for(int i = 1; i < this.quadruple.size(); i++) {
             String[] quad = quadruple.get(i);
-            System.out.print(quadIndex + " ");
+            System.out.print(quadIndex + ": ");
             for(int i2 = 0; i2 < quad.length - 1; i2++){
-                System.out.print(quad[i2] + ", ");
+                if(!quad[i2+1].equals("")) {
+                    System.out.print(quad[i2] + ", ");
+                }
+                else{
+                    System.out.print(quad[i2]);
+                }
             }
             System.out.print(quad[quad.length-1]);
             System.out.println();

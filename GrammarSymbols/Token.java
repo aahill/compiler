@@ -27,7 +27,6 @@ public class Token {
         return this.type;
     }
 
-
     public void setType(TokenType newType){
         this.type = newType;
     }

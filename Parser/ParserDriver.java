@@ -1,5 +1,7 @@
 package Parser;
 
+import CompilerError.SemanticError;
+
 public class ParserDriver {
 
     public Parser parser;
@@ -14,10 +16,14 @@ public class ParserDriver {
         try {
             parser.parse();
         }
+
         catch(Exception ex) { //SHOULD BE PARSER ERROR
             System.err.println(ex.getMessage());
+            //parser.semanticActions.quads.print();
             System.exit(1);
+
         }
+
         //checks if the parser found errors; if not, print parse success message
         if(!parser.foundErrors()) {
             System.out.println("Compilation successful.");
@@ -28,9 +34,11 @@ public class ParserDriver {
     public static void main(String[] args)
     {
         String parseTableFile = "Src/Test/TestFiles/parseTable.dat";
-        //String toParse ="Src/Test/TestFiles/semanticActionTest1.dat";
+        //String toParse ="Src/Test/TestFiles/semanticActiontest1.dat";
+        //String toParse ="Src/Test/TestFiles/boolTest.dat";
+        //String toParse ="Src/Test/TestFiles/modTest.dat";
         //String toParse = "Src/Test/TestFiles/expressionTest.dat";
-        String toParse = "Src/Test/TestFiles/arrayRef.pas";
+        String toParse = "Src/Test/TestFiles/array.pas";
         ParserDriver test = new ParserDriver(toParse, parseTableFile);
         test.run();
         test.parser.semanticActions.printQuads();
