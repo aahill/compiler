@@ -36,9 +36,10 @@ public class ParserDriver {
         String parseTableFile = "Src/Test/TestFiles/parseTable.dat";
         //String toParse ="Src/Test/TestFiles/semanticActiontest1.dat";
         //String toParse ="Src/Test/TestFiles/boolTest.dat";
-        //String toParse ="Src/Test/TestFiles/modTest.dat";
+        String toParse ="Src/Test/TestFiles/procTest.dat";
         //String toParse = "Src/Test/TestFiles/expressionTest.dat";
-        String toParse = "Src/Test/TestFiles/array.pas";
+        //String toParse = "Src/Test/TestFiles/array.pas";
+        //String toParse = "Src/Test/TestFiles/ifTest.dat";
         ParserDriver test = new ParserDriver(toParse, parseTableFile);
         test.run();
         test.parser.semanticActions.printQuads();

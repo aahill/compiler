@@ -4,20 +4,23 @@ import GrammarSymbols.TokenType;
 
 public class ArrayEntry extends SymbolTableEntry{
     int address;
-    int lowerBound;
-    int upperBound;
+    ConstantEntry lowerBound;
+    ConstantEntry upperBound;
 
     public ArrayEntry(String name){
         super(name);
+        this.setArray(true);
     }
     public ArrayEntry(String name, TokenType type){
         super(name, type);
+        this.setArray(true);
     }
-    public ArrayEntry(String name, int address, TokenType type, int lowerBound, int upperBound){
+    public ArrayEntry(String name, int address, TokenType type, ConstantEntry lowerBound, ConstantEntry upperBound){
         super(name, type);
         this.address = address;
         this.lowerBound = lowerBound;
         this.upperBound = upperBound;
+        this.setArray(true);
     }
     //overriding base-class print method
     @Override
@@ -31,16 +34,16 @@ public class ArrayEntry extends SymbolTableEntry{
         System.out.println(" Lower bound : " + this.getLowerBound());
         System.out.println();
     }
-    public int getLowerBound(){
+    public ConstantEntry getLowerBound(){
         return lowerBound;
     }
-    public void setLowerBound(int newLowerBound){
+    public void setLowerBound(ConstantEntry newLowerBound){
         this.lowerBound = newLowerBound;
     }
-    public int getUpperBound(){
+    public ConstantEntry getUpperBound(){
         return upperBound;
     }
-    public void setUpperBound(int newUpperBound){
+    public void setUpperBound(ConstantEntry newUpperBound){
         this.upperBound = newUpperBound;
     }
     public int getAddress(){
@@ -49,4 +52,9 @@ public class ArrayEntry extends SymbolTableEntry{
     public void setAddress(int newAddress){
         this.address = newAddress;
     }
+    @Override
+    public boolean isArray(){
+        return true;
+    }
+
 }

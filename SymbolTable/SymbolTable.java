@@ -13,6 +13,8 @@ public class SymbolTable {
         ProcedureEntry mainEntry = new ProcedureEntry("main", 0);
         ProcedureEntry readEntry = new ProcedureEntry("read");
         ProcedureEntry writeEntry = new ProcedureEntry("write");
+        writeEntry.addParameterInfo(new ParamEntry("op1"));
+        readEntry.addParameterInfo(new ParamEntry("op1"));
         this.table.put("main",mainEntry);
         this.table.put("read", readEntry);
         this.table.put("write", writeEntry);

@@ -15,15 +15,18 @@ public class VariableEntry extends SymbolTableEntry {
 
     public VariableEntry(String Name) {
         super(Name);
+        this.setVariable(true);
     }
 
     public VariableEntry(String Name, TokenType type) {
         super(Name, type);
+        this.setVariable(true);
     }
 
     public VariableEntry(String Name, TokenType type, int address){
         super(Name, type);
         this.address = address;
+        this.setVariable(true);
     }
 
     public int getAddress() {

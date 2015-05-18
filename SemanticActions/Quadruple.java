@@ -7,7 +7,8 @@ public class Quadruple {
     private int nextQuad;
 
     public Quadruple(){
-    this.quadruple = new Vector<>();
+        this.quadruple = new Vector<>();
+        this.nextQuad = 0;
     }
 
 

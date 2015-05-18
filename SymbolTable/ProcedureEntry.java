@@ -1,22 +1,30 @@
 package SymbolTable;
 
+import java.util.LinkedList;
+
 public class ProcedureEntry extends SymbolTableEntry {
 
     private int numberOfParameters;
-    private String parameterInfo;
+    private LinkedList<ParamEntry> parameterInfo;
 
     public ProcedureEntry(String name){
         super(name);
+        this.setFunction(true);
+        parameterInfo = new LinkedList<>();
+        this.setProc(true);
     }
 
     public ProcedureEntry(String name, int numberOfParameters){
         super(name);
         this.numberOfParameters = numberOfParameters;
+        parameterInfo = new LinkedList<>();
+        this.setProc(true);
     }
-    public ProcedureEntry(String name, int numberOfParameters, String parameterInfo){
+    public ProcedureEntry(String name, int numberOfParameters, LinkedList<SymbolTableEntry> parameterInfo){
         super(name);
         this.numberOfParameters = numberOfParameters;
-        this.parameterInfo = parameterInfo;
+        parameterInfo = new LinkedList<SymbolTableEntry>();
+        this.setProc(true);
     }
 
     @Override
@@ -24,7 +32,7 @@ public class ProcedureEntry extends SymbolTableEntry {
         System.out.println("Parameter Entry:");
         System.out.println(" Name                 : " + this.getName());
         System.out.println(" Number of parameters : " + this.getNumberOfParameters());
-        System.out.println(" Parameter Info       : " + this.getParameterInfo());
+        //System.out.println(" Parameter Info       : " + this.getParameterInfo());
         System.out.println();
     }
 
@@ -38,14 +46,17 @@ public class ProcedureEntry extends SymbolTableEntry {
         this.numberOfParameters = numberOfParameters;
     }
 
-    //returns the parameter info
-    public String getParameterInfo(){
-        return parameterInfo;
+    //adds an element to the parameter info
+    public void addParameterInfo(ParamEntry param){
+        this.parameterInfo.add(param);
+    }
+    public ParamEntry getParameters(int index){
+        return this.parameterInfo.get(index);
     }
 
-    //returns the parameter info
-    public void setParameterInfo(String newParameterInfo){
-        this.parameterInfo = newParameterInfo;
+    @Override
+    public boolean isProc(){
+        return true;
     }
 
 }
