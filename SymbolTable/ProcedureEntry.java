@@ -41,6 +41,10 @@ public class ProcedureEntry extends SymbolTableEntry {
         return numberOfParameters;
     }
 
+    public LinkedList<ParamEntry> getParamList(){
+        return this.parameterInfo;
+    }
+
     //sets the number of parameters
     public void setNumberOfParameters(int numberOfParameters){
         this.numberOfParameters = numberOfParameters;

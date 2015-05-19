@@ -54,6 +54,10 @@ public class FunctionEntry extends SymbolTableEntry{
         return result;
     }
 
+    public LinkedList<ParamEntry> getParamList(){
+        return this.parameterInfo;
+    }
+
     public ParamEntry getParameters(int index){
         return this.parameterInfo.get(index);
     }

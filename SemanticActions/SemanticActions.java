@@ -5,9 +5,7 @@ package SemanticActions;
 //they do not pop, but create new entries (shouldn't cause problems)
 
 import java.lang.*;
-import java.lang.reflect.Array;
 import java.util.*;
-import java.util.function.Function;
 
 import GrammarSymbols.*;
 import CompilerError.*;
@@ -28,8 +26,9 @@ public class SemanticActions {
     private int tableSize;
     private Stack<Integer> parmCountStack;
     private ParamEntry nextParm;
+    private Stack<LinkedList<ParamEntry>> nextParmStack;
+    private Stack<Integer>parmCountStackIndex;
     private String currentFunction;
-    private SymbolTableEntry nullOffset;
     public SymbolTable globalTable;
     private SymbolTable constantTable;
     public SymbolTable localTable;
@@ -38,7 +37,9 @@ public class SemanticActions {
     public SemanticActions() {
         tableSize = 53;
         parmCountStack = new Stack<Integer>();
+        parmCountStackIndex = new Stack<>();
         semanticStack = new Stack<Object>();
+        nextParmStack = new Stack<>();
         quads = new Quadruple();
         insert = false;
         isArray = false;
@@ -47,7 +48,6 @@ public class SemanticActions {
         globalMemory = 0;
         localMemory = 0;
         varCounter = 1;
-        nullOffset = new SymbolTableEntry("null", TokenType.INTCONSTANT);
         currentFunction = null;
         globalTable = new SymbolTable(tableSize);
         constantTable = new SymbolTable(tableSize);
@@ -81,9 +81,17 @@ public class SemanticActions {
             return Integer.toString(id.getAddress());
         }
     }*/
+    public void dumpStack(){
+        System.out.println("----------------------------------------------------------");
+        for(Object item : semanticStack){
+            System.out.println(item.toString());
+        }
+        System.out.println("----------------------------------------------------------");
+    }
 
     public VariableEntry create(String name, TokenType type){
         VariableEntry newVar = new VariableEntry("$$"+name, type);
+        newVar.setAsResult(true);
         if(global){
             newVar.setAddress(globalMemory * -1);
             globalTable.insert(newVar);
@@ -159,7 +167,7 @@ public class SemanticActions {
         }
     }
 
-    public void Execute(SemanticAction action, Token token) throws SemanticError {
+    public void Execute(SemanticAction action, Token token, int lineNumber, String line) throws SemanticError {
 
         int actionNumber = action.getIndex();
 
@@ -323,7 +331,7 @@ public class SemanticActions {
             case 15: {
                 FunctionEntry functEntry = new FunctionEntry(token.getVal());
                 globalTable.insert(functEntry);
-                SymbolTableEntry funName = create("FUN_NAME", TokenType.INTEGER);
+                SymbolTableEntry funName = create(functEntry.getName(), TokenType.INTEGER);
                 functEntry.setResult(funName);
                 semanticStack.push(functEntry);
                 global = false;
@@ -336,7 +344,7 @@ public class SemanticActions {
                 TokenType type = ((Token) semanticStack.pop()).getType();
                 SymbolTableEntry id = (SymbolTableEntry)semanticStack.peek();
                 id.setType(type);
-                SymbolTableEntry functionName = lookup("$$FUN_NAME");
+                SymbolTableEntry functionName = lookup("$$"+id.getName());
                 functionName.setType(type);
                 currentFunction = id.getName();
                 break;
@@ -371,7 +379,12 @@ public class SemanticActions {
 
             case 21: {
                 TokenType type = ((Token) semanticStack.pop()).getType();
-                SymbolTableEntry id = (SymbolTableEntry) semanticStack.get(0);
+                SymbolTableEntry id = null;
+                for(Object stackItem : semanticStack){
+                    if (stackItem instanceof FunctionEntry || stackItem instanceof ProcedureEntry){
+                        id = (SymbolTableEntry) stackItem;
+                    }
+                }
                 while (!semanticStack.empty() && semanticStack.peek() instanceof Token) {
                     if (isArray) {
                         //create symbol table entry
@@ -380,9 +393,9 @@ public class SemanticActions {
                         Token parmToken = (Token) semanticStack.pop();
                         ArrayEntry arrayParm = new ArrayEntry(parmToken.getVal(),type);
                         if (global) {
-                            //globalTable.insert(parmEntry);
-                            //parmEntry.setAddress(localMemory);
-                            //localMemory += 1;
+                            globalTable.insert(arrayParm);
+                            arrayParm.setAddress(globalMemory);
+                            globalMemory += 1;
                         } else {
                             localTable.insert(arrayParm);
                             arrayParm.setAddress(localMemory);
@@ -409,9 +422,9 @@ public class SemanticActions {
                         VariableEntry parmEntry = new VariableEntry(parmToken.getVal(), type);
                         parmEntry.setParamStatus(true);
                         if (global) {
-                            //globalTable.insert(parmEntry);
-                            //parmEntry.setAddress(localMemory);
-                            //localMemory += 1;
+                            globalTable.insert(parmEntry);
+                            parmEntry.setAddress(globalMemory);
+                            globalMemory += 1;
                         } else {
                             localTable.insert(parmEntry);
                             parmEntry.setAddress(localMemory);
@@ -445,7 +458,9 @@ public class SemanticActions {
                     throw SemanticError.IllegalETypeException();
                 }
                 else{
+                    @SuppressWarnings("unchecked")
                     LinkedList<Integer> EFalse = (LinkedList<Integer>) semanticStack.pop();
+                    @SuppressWarnings("unchecked")
                     LinkedList<Integer> ETrue = (LinkedList<Integer>) semanticStack.peek();
                     semanticStack.push(EFalse);
                     backPatch(ETrue, quads.getNextQuad());
@@ -465,7 +480,9 @@ public class SemanticActions {
                     throw SemanticError.IllegalETypeException();
                 }
                 else{
-                    LinkedList<Integer> EFalse = (LinkedList<Integer>)semanticStack.peek();
+                    @SuppressWarnings("unchecked")
+                    LinkedList<Integer> EFalse = (LinkedList<Integer>)semanticStack.pop();
+                    @SuppressWarnings("unchecked")
                     LinkedList<Integer> ETrue = (LinkedList<Integer>)semanticStack.peek();
                     semanticStack.push(EFalse);
                     backPatch(ETrue, quads.getNextQuad());
@@ -474,9 +491,11 @@ public class SemanticActions {
             }
 
             case 26:{
-                int beginLoop = (int)semanticStack.pop();
+                @SuppressWarnings("unchecked")
                 LinkedList<Integer> EFalse = (LinkedList<Integer>)semanticStack.pop();
+                @SuppressWarnings("unchecked")
                 LinkedList<Integer> ETrue = (LinkedList<Integer>)semanticStack.pop();
+                int beginLoop = (int)semanticStack.pop();
                 generate("GOTO", Integer.toString(beginLoop));
                 backPatch(EFalse,quads.getNextQuad());
                 break;
@@ -484,6 +503,7 @@ public class SemanticActions {
 
             case 27:{
                 LinkedList<Integer> skipElse = makeList(quads.getNextQuad());
+                @SuppressWarnings("unchecked")
                 LinkedList<Integer>EFalse = (LinkedList<Integer>) semanticStack.peek();
                 semanticStack.push(skipElse);
                 generate("GOTO");
@@ -492,15 +512,20 @@ public class SemanticActions {
             }
 
             case 28:{
+                @SuppressWarnings("unchecked")
                 LinkedList<Integer> skipElse = (LinkedList<Integer>) semanticStack.pop();
+                @SuppressWarnings("unchecked")
                 LinkedList<Integer> EFalse = (LinkedList<Integer>) semanticStack.pop();
+                @SuppressWarnings("unchecked")
                 LinkedList<Integer> ETrue = (LinkedList<Integer>) semanticStack.pop();
                 backPatch(skipElse, quads.getNextQuad());
                 break;
             }
 
             case 29:{
+                @SuppressWarnings("unchecked")
                 LinkedList<Integer> EFalse = (LinkedList<Integer>) semanticStack.pop();
+                @SuppressWarnings("unchecked")
                 LinkedList<Integer> ETrue = (LinkedList<Integer>) semanticStack.pop();
                 backPatch(EFalse, quads.getNextQuad());
                 break;
@@ -508,7 +533,7 @@ public class SemanticActions {
 
             case 30: {
                 if(lookup(token.getVal()) == null){
-                    throw SemanticError.VariableNotFoundException(token);
+                    throw SemanticError.VariableNotFoundException(token, lineNumber, line);
                 }
                 else{
                     semanticStack.push(lookup(token.getVal()));
@@ -518,13 +543,14 @@ public class SemanticActions {
             }
 
             case 31:{
+                //function variable should be here
                 EType etype1 = (EType)semanticStack.pop();
-                SymbolTableEntry id1 = (SymbolTableEntry)semanticStack.pop();
+                SymbolTableEntry id2 = (SymbolTableEntry)semanticStack.pop();
                 //pop offset
                 SymbolTableEntry offset = (SymbolTableEntry)semanticStack.pop();
                 //IS THIS RIGHT?
                 //EType etype2 = (EType)semanticStack.pop();
-                SymbolTableEntry id2 = (SymbolTableEntry)semanticStack.pop();
+                SymbolTableEntry id1 = (SymbolTableEntry)semanticStack.pop();
                 if(typeCheck(id1, id2) == 3 || etype1 != EType.arithmetic){
                     throw SemanticError.GenericError();
                 }
@@ -544,7 +570,6 @@ public class SemanticActions {
                 else{
                     generate("STOR",id2,offset,id1);
                 }
-
                 break;
             }
 
@@ -556,27 +581,21 @@ public class SemanticActions {
                 if(!(((SymbolTableEntry)semanticStack.peek()).isArray())){
                     throw SemanticError.IllegalETypeException();
                 }
-
                 break;
             }
 
             case 33:{
                 EType eType = (EType)semanticStack.pop();
-                if(eType != EType.arithmetic){
-                    throw SemanticError.IllegalETypeException();
-                }
                 SymbolTableEntry id = (SymbolTableEntry)semanticStack.pop();
-                if(id.getType() != TokenType.INTEGER){
-                    throw SemanticError.IllegalIndexException();
-                }
                 ArrayEntry arrayName = (ArrayEntry)semanticStack.peek();
+
                 if(eType != EType.arithmetic){
                     throw SemanticError.IllegalETypeException();
+                }
+                if(id.getType() != TokenType.INTEGER){
+                    throw SemanticError.IllegalIndexException(lineNumber, line);
                 }
                 else {
-                    if (id.getType() != TokenType.INTEGER) {
-                        throw SemanticError.IllegalIndexException();
-                    }
                     SymbolTableEntry temp = createTemp(TokenType.INTEGER);
                     generate("SUB", id, arrayName.getLowerBound(),temp);
                     //semanticStack.push(EType.arithmetic);
@@ -589,7 +608,7 @@ public class SemanticActions {
             case 34:{
                 EType etype = (EType)semanticStack.pop();
                 if(((SymbolTableEntry)semanticStack.peek()).isFunction()){
-                    this.Execute(SemanticAction.action52,token);
+                    //this.Execute(SemanticAction.action52,token, lineNumber, line);
                 }
                 else{
                     semanticStack.push(new ConstantEntry("null", TokenType.INTCONSTANT));
@@ -601,19 +620,23 @@ public class SemanticActions {
                 parmCountStack.push(0);
                 SymbolTableEntry id = (SymbolTableEntry)semanticStack.peek();
                 if(id instanceof ProcedureEntry){
-                    nextParm = ((ProcedureEntry) id).getParameters(0);
+                    //nextParm = ((ProcedureEntry) id).getParameters(0);
+                    nextParmStack.push(((ProcedureEntry)id).getParamList());
+                    nextParm = nextParmStack.peek().get(0);
                 }
                 else {
-                    nextParm = ((FunctionEntry) id).getParameters(0);
+                    //nextParm = ((FunctionEntry) id).getParameters(0);
+                    nextParmStack.push(((FunctionEntry)id).getParamList());
+                    nextParm = nextParmStack.peek().get(0);
                 }
                 break;
             }
 
             case 36:{
-                semanticStack.pop();
-                FunctionEntry id = (FunctionEntry)semanticStack.pop();
+                //semanticStack.pop();
+                ProcedureEntry id = (ProcedureEntry)semanticStack.pop();
                 if(id.getNumberOfParameters() != 0){
-                    //define error
+                    throw SemanticError.GenericError();
                 }
                 generate("call",id,"0");
                 break;
@@ -640,6 +663,12 @@ public class SemanticActions {
                         break;
                     }
                 }
+                /*for(int i = semanticStack.size()-1; i > 0; i--){
+                    if (semanticStack.get(i) instanceof ProcedureEntry || semanticStack.get(i) instanceof FunctionEntry){
+                        procOrFunc = (SymbolTableEntry)semanticStack.get(i);
+                        break;
+                    }
+                }*/
 
                 if(procOrFunc instanceof FunctionEntry) {
                     FunctionEntry funct = (FunctionEntry) procOrFunc;
@@ -648,21 +677,23 @@ public class SemanticActions {
                             throw SemanticError.GenericError();
                         }
 
-                        if (id.getType() != nextParm.getType()) {
+                        //if (id.getType() != nextParm.getType()) {
+                        if (id.getType() != nextParm.getType() ){
                             throw SemanticError.GenericError();
                         }
+                        //if (nextParm.isArray()) {
                         if (nextParm.isArray()) {
-                            if (((ArrayEntry) id).getLowerBound().getName() != nextParm.getLowerBound().getName() ||
-                                    ((ArrayEntry) id).getUpperBound().getName() != nextParm.getUpperBound().getName()) {
+                            if (!(((ArrayEntry) id).getLowerBound().getName().equals(nextParm.getLowerBound().getName()) &&
+                                    ((ArrayEntry) id).getUpperBound().getName().equals(nextParm.getUpperBound().getName()))) {
                                 throw SemanticError.GenericError();
                             }
                         }
-                        if(counter < funct.getNumberOfParameters()) {
-                            nextParm = funct.getParameters(counter);
-                        }
                     }
-                    else{
-                        semanticStack.push(id);
+                    //else{
+                    //    semanticStack.push(id);
+                    //}
+                    if(counter < funct.getNumberOfParameters()) {
+                        nextParm = nextParmStack.peek().get(counter);
                     }
                 }
                 else{
@@ -681,12 +712,14 @@ public class SemanticActions {
                             }
                         }
                         if(counter < proc.getNumberOfParameters()) {
-                            nextParm = proc.getParameters(counter);
+                            nextParm = nextParmStack.peek().get(counter);
                         }
                     }
-                    else{
-                        semanticStack.push(id);
-                    }
+                    //else{
+                    //    semanticStack.push(id);
+                   //}
+                    //semanticStack.push(id);
+                    //nextParm = nextParmStack.peek().get(counter);
 
 
                 }
@@ -704,9 +737,9 @@ public class SemanticActions {
 
             case 39:{
                 EType eType = (EType)semanticStack.pop();
-                SymbolTableEntry id1 = (SymbolTableEntry)semanticStack.pop();
-                Token operator = (Token)semanticStack.pop();
                 SymbolTableEntry id2 = (SymbolTableEntry)semanticStack.pop();
+                Token operator = (Token)semanticStack.pop();
+                SymbolTableEntry id1 = (SymbolTableEntry)semanticStack.pop();
 
                 if(eType != EType.arithmetic){
                     throw SemanticError.IllegalETypeException();
@@ -759,10 +792,14 @@ public class SemanticActions {
             case 43:{
                 EType eType = (EType)semanticStack.pop();
                 if(eType == EType.relational) {
+                    @SuppressWarnings("unchecked")
                     LinkedList<Integer> E1False = (LinkedList<Integer>) semanticStack.pop();
+                    @SuppressWarnings("unchecked")
                     LinkedList<Integer> E1True = (LinkedList<Integer>) semanticStack.pop();
                     Token operator = (Token)semanticStack.pop();
+                    @SuppressWarnings("unchecked")
                     LinkedList<Integer> E2False = (LinkedList<Integer>) semanticStack.pop();
+                    @SuppressWarnings("unchecked")
                     LinkedList<Integer> E2True = (LinkedList<Integer>) semanticStack.pop();
 
                     if (operator.getVal().toLowerCase().equals("or")) {
@@ -773,9 +810,9 @@ public class SemanticActions {
                     }
                 }
                 else{
-                    SymbolTableEntry id1 = (SymbolTableEntry)semanticStack.pop();
-                    Token operator = (Token)semanticStack.pop();
                     SymbolTableEntry id2 = (SymbolTableEntry)semanticStack.pop();
+                    Token operator = (Token)semanticStack.pop();
+                    SymbolTableEntry id1 = (SymbolTableEntry)semanticStack.pop();
 
                     if(eType != EType.arithmetic){
                         throw SemanticError.IllegalETypeException();
@@ -813,7 +850,9 @@ public class SemanticActions {
                 EType eType = (EType)semanticStack.pop();
                 if(eType == EType.relational){
                     if(token.getVal().equals("and")){
+                        @SuppressWarnings("unchecked")
                         LinkedList<Integer> EFalse = (LinkedList<Integer>) semanticStack.pop();
+                        @SuppressWarnings("unchecked")
                         LinkedList<Integer> ETrue = (LinkedList<Integer>) semanticStack.peek();
                         backPatch(ETrue, quads.getNextQuad());
                         semanticStack.push(EFalse);
@@ -836,10 +875,14 @@ public class SemanticActions {
                     while(!tempStack.empty()){
                         semanticStack.push(tempStack.pop());
                     }
+                    @SuppressWarnings("unchecked")
                     LinkedList<Integer> E1True = (LinkedList<Integer>) semanticStack.pop();
+                    @SuppressWarnings("unchecked")
                     LinkedList<Integer> E1False = (LinkedList<Integer>) semanticStack.pop();
                     Token operator = (Token)semanticStack.pop();
+                    @SuppressWarnings("unchecked")
                     LinkedList<Integer> E2True = (LinkedList<Integer>) semanticStack.pop();
+                    @SuppressWarnings("unchecked")
                     LinkedList<Integer> E2False = (LinkedList<Integer>) semanticStack.pop();
 
                     if(eType != EType.relational){
@@ -859,15 +902,15 @@ public class SemanticActions {
                         semanticStack.push(tempStack.pop());
                     }
                     //EType eType = (EType)semanticStack.pop();
-                    SymbolTableEntry id1 = (SymbolTableEntry)semanticStack.pop();
-                    Token operator = (Token)semanticStack.pop();
                     SymbolTableEntry id2 = (SymbolTableEntry)semanticStack.pop();
+                    Token operator = (Token)semanticStack.pop();
+                    SymbolTableEntry id1 = (SymbolTableEntry)semanticStack.pop();
 
                     if(eType != EType.arithmetic){
                         throw SemanticError.IllegalETypeException();
                     }
                     if(typeCheck(id1, id2) != 0 && operator.getVal().equals("mod")){
-                        throw SemanticError.ModOperandsException();//mismatch
+                        throw SemanticError.ModOperandsException(lineNumber, line);//mismatch
                     }
                     if(typeCheck(id1, id2) == 0){
                         if(operator.getVal().toLowerCase().equals("mod")) {
@@ -951,7 +994,7 @@ public class SemanticActions {
             case 46:{
                 if(token.getType() == TokenType.IDENTIFIER){
                     if(lookup(token.getVal()) == null){
-                        throw SemanticError.VariableNotFoundException(token);
+                        throw SemanticError.VariableNotFoundException(token, lineNumber, line);
                     }
                     else{
                         semanticStack.push(lookup(token.getVal()));
@@ -981,7 +1024,9 @@ public class SemanticActions {
 
             case 47: {
                 EType eType = (EType) semanticStack.pop();
+                @SuppressWarnings("unchecked")
                 LinkedList<Integer> ETrue = (LinkedList<Integer>) semanticStack.pop();
+                @SuppressWarnings("unchecked")
                 LinkedList<Integer> EFalse = (LinkedList<Integer>) semanticStack.pop();
                 if(eType != EType.relational){
                     throw SemanticError.IllegalETypeException();
@@ -1002,7 +1047,7 @@ public class SemanticActions {
                     //EType etype = (EType)semanticStack.pop();
                     //
                     if(offset.getType() != TokenType.INTEGER){
-                        throw SemanticError.IllegalIndexException();
+                        throw SemanticError.IllegalIndexException(lineNumber, line);
                     }
                     else{
                         SymbolTableEntry id = (SymbolTableEntry)semanticStack.pop();
@@ -1025,24 +1070,34 @@ public class SemanticActions {
                     throw SemanticError.GenericError();
                 }
                 parmCountStack.push(0);
-                nextParm = ((FunctionEntry)id).getParameters(parmCountStack.peek());
+                //nextParm = ((FunctionEntry)id).getParameters(parmCountStack.peek());
+                nextParmStack.push(((FunctionEntry)id).getParamList());
+                nextParm = nextParmStack.peek().get(0);
                 break;
             }
 
             case 50:{
-                FunctionEntry function = (FunctionEntry)semanticStack.pop();
-                while(!semanticStack.empty() && semanticStack.peek() instanceof SymbolTableEntry){
-                    SymbolTableEntry id = (SymbolTableEntry)semanticStack.pop();
+                Stack<Object>tempStack = new Stack<>();
+                //pop the parameters into a temp stack so they can be processed in the correct order
+                while(!semanticStack.empty() && !(semanticStack.peek() instanceof FunctionEntry || semanticStack.peek() instanceof ProcedureEntry)) {
+                    tempStack.push(semanticStack.pop());
+                }
+                while(!tempStack.empty()){
+                    SymbolTableEntry id = (SymbolTableEntry)tempStack.pop();
                     localMemory += 1;
                     generate("PARAM", id);
                 }
+                FunctionEntry function = (FunctionEntry)semanticStack.pop();
                 if(parmCountStack.peek() > function.getNumberOfParameters()){
                     //Error should reflect mismatch in parameters
                     throw SemanticError.GenericError();
                 }
                 generate("CALL", function, Integer.toString(parmCountStack.peek()));
                 parmCountStack.pop();
-                nextParm = null;
+                nextParmStack.pop();
+                if(!nextParmStack.empty()) {
+                    nextParm = nextParmStack.peek().get(0);
+                }
                 SymbolTableEntry temp = createTemp(function.getType());
                 generate("MOVE", function.getResult().getName(), temp);
                 semanticStack.push(temp);
@@ -1083,6 +1138,7 @@ public class SemanticActions {
                 }
                 generate("CALL", id, Integer.toString(parmCountStack.peek()));
                 parmCountStack.pop();
+                nextParmStack.pop();
                 nextParm = null;
                 break;
             }
@@ -1110,7 +1166,7 @@ public class SemanticActions {
                 if(((SymbolTableEntry)semanticStack.peek()).isFunction()){
                     SymbolTableEntry id = (SymbolTableEntry)semanticStack.pop();
                     if(!id.getName().equals(currentFunction)){
-                        //define error here
+                        throw SemanticError.GenericError();
                     }
                     else{
                         //semanticStack.push("$$"+id.getName());
@@ -1157,6 +1213,7 @@ public class SemanticActions {
                 break;
             }
         }
+        this.dumpStack();
     }
 
     /**

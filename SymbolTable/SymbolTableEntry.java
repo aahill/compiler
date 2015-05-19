@@ -42,6 +42,10 @@ public class SymbolTableEntry {
     public String getName() {
         return this.name;
     }
+    public String toString(){
+        return this.getName() + " " + this.getType();
+    }
+
 
     public TokenType getType() {
         return this.type;

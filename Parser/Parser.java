@@ -70,12 +70,21 @@ public class Parser {
             catch(ParserError error){
                 System.err.println(error.getMessage());
                 currentToken = lexDriver.getNextToken();
+                //System.exit(1);
             }
             catch(SemanticError error){
                 System.err.println(error.getMessage());
                 System.exit(1);
             }
         }
+    }
+
+    public int currLineNumber(){
+        return this.lexDriver.lexer.charStream.lineNumber();
+    }
+
+    public String currLine(){
+        return this.lexDriver.lexer.charStream.getCurrentLine();
     }
 
     /**
@@ -163,13 +172,12 @@ public class Parser {
         //If the next item is a semantic action, it must be executed and then popped off of the stack
         else if(predicted.isAction()){
             try {
-                semanticActions.Execute((SemanticAction) predicted, currentToken);
+                semanticActions.Execute((SemanticAction) predicted, currentToken, currLineNumber(), currLine());
                 stack.pop();
 
             }
             catch(SemanticError semanticError){
                 System.err.print(semanticError.getMessage());
-                semanticActions.quads.print();
             }
 
         }
@@ -179,7 +187,8 @@ public class Parser {
     public void executeAction() throws SemanticError{
         predicted = stack.peek();
         //try {
-            semanticActions.Execute((SemanticAction) predicted, currentToken);
+            semanticActions.Execute((SemanticAction) predicted, currentToken, currLineNumber(), currLine());
+        //semanticActions.dumpStack();
         //}
         //catch (SemanticError semanticError) {
         //    System.err.print(semanticError.getMessage());

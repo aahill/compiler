@@ -48,7 +48,7 @@ end
 begin
    i := 1;
    x := 5;
-   While (I <= 5) and (x <= 75) do
+   While (i <= 5) and (x <= 75) do
    begin
       w [i] := x;
       w[x] := w[i] * 20;
