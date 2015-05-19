@@ -47,7 +47,7 @@ public class SemanticActions {
         global = true;
         globalMemory = 0;
         localMemory = 0;
-        varCounter = 1;
+        varCounter = 0;
         currentFunction = null;
         globalTable = new SymbolTable(tableSize);
         constantTable = new SymbolTable(tableSize);
@@ -57,16 +57,34 @@ public class SemanticActions {
     public String symToOp(Token symbol){
         switch (symbol.getVal()){
             case "*":{
-                return "MUL";
+                return "mul";
             }
             case "/":{
-                return "DIV";
+                return "div";
             }
             case "+":{
-                return "ADD";
+                return "add";
             }
             case "-":{
-                return "SUB";
+                return "sub";
+            }
+            case "=":{
+                return "beq";
+            }
+            case "<>":{
+                return "bne";
+            }
+            case ">=":{
+                return "bge";
+            }
+            case "<":{
+                return "blt";
+            }
+            case "<=":{
+                return "ble";
+            }
+            case ">":{
+                return "bgt";
             }
             default:{
                 return "WARNING:" + symbol + "NOT A RECOGNIZED OPERAND TYPE";
@@ -269,7 +287,7 @@ public class SemanticActions {
             case 5:{
                 insert = false;
                 SymbolTableEntry id = (SymbolTableEntry) semanticStack.pop();
-                generate("PROCBEGIN", id);
+                generate("procbegin", id);
                 localStore = quads.getNextQuad();
                 generate("alloc");
                 break;
@@ -304,10 +322,10 @@ public class SemanticActions {
                     }
                 }
                 insert = false;
-                generate("CODE");
+                generate("code");
                 //generate("CALL",globalTable.lookup("main"),"0");
-                generate("CALL main","0");
-                generate("EXIT");
+                generate("call main","0");
+                generate("exit");
                 break;
             }
 
@@ -317,8 +335,8 @@ public class SemanticActions {
                 localTable = null;
                 currentFunction = null;
                 quads.setField(localStore,3,Integer.toString(localMemory));
-                generate("FREE", Integer.toString(localMemory));
-                generate("PROCEND");
+                generate("free", Integer.toString(localMemory));
+                generate("procend");
                 break;
             }
 
@@ -496,7 +514,7 @@ public class SemanticActions {
                 @SuppressWarnings("unchecked")
                 LinkedList<Integer> ETrue = (LinkedList<Integer>)semanticStack.pop();
                 int beginLoop = (int)semanticStack.pop();
-                generate("GOTO", Integer.toString(beginLoop));
+                generate("goto", Integer.toString(beginLoop));
                 backPatch(EFalse,quads.getNextQuad());
                 break;
             }
@@ -506,7 +524,7 @@ public class SemanticActions {
                 @SuppressWarnings("unchecked")
                 LinkedList<Integer>EFalse = (LinkedList<Integer>) semanticStack.peek();
                 semanticStack.push(skipElse);
-                generate("GOTO");
+                generate("goto");
                 backPatch(EFalse, quads.getNextQuad());
                 break;
             }
@@ -556,19 +574,19 @@ public class SemanticActions {
                 }
                 else if(typeCheck(id1, id2)==2){
                     SymbolTableEntry temp1 = createTemp(TokenType.REAL);
-                    generate("LTOF", id1, temp1);
+                    generate("ltof", id1, temp1);
                     if(offset.getName().equals("null")){
-                        generate("MOVE", temp1, id1);
+                        generate("move", temp1, id1);
                     }
                     else{
-                        generate("STOR", temp1,offset,id1);
+                        generate("stor", temp1,offset,id1);
                     }
                 }
                 else if(offset.getName().equals("null")){
-                    generate("MOVE", id2, id1);
+                    generate("move", id2, id1);
                 }
                 else{
-                    generate("STOR",id2,offset,id1);
+                    generate("stor",id2,offset,id1);
                 }
                 break;
             }
@@ -597,7 +615,7 @@ public class SemanticActions {
                 }
                 else {
                     SymbolTableEntry temp = createTemp(TokenType.INTEGER);
-                    generate("SUB", id, arrayName.getLowerBound(),temp);
+                    generate("sub", id, arrayName.getLowerBound(),temp);
                     //semanticStack.push(EType.arithmetic);
                     semanticStack.push(temp);
                 }
@@ -663,12 +681,6 @@ public class SemanticActions {
                         break;
                     }
                 }
-                /*for(int i = semanticStack.size()-1; i > 0; i--){
-                    if (semanticStack.get(i) instanceof ProcedureEntry || semanticStack.get(i) instanceof FunctionEntry){
-                        procOrFunc = (SymbolTableEntry)semanticStack.get(i);
-                        break;
-                    }
-                }*/
 
                 if(procOrFunc instanceof FunctionEntry) {
                     FunctionEntry funct = (FunctionEntry) procOrFunc;
@@ -723,6 +735,9 @@ public class SemanticActions {
 
 
                 }
+                if(procOrFunc.getName().toLowerCase().equals("write")){
+                    semanticStack.push(id);
+                }
                 break;
             }
 
@@ -746,18 +761,18 @@ public class SemanticActions {
                 }
                 if(typeCheck(id1, id2)== 2){
                     SymbolTableEntry temp1 = createTemp(TokenType.REAL);
-                    generate("LTOF",id2,temp1);
-                    generate(token.getVal(), id1, temp1);
+                    generate("ltof",id2,temp1);
+                    generate(symToOp(operator), id1, temp1);
                 }
                 if(typeCheck(id1, id2) == 3){
                     SymbolTableEntry temp1 = createTemp(TokenType.REAL);
-                    generate("LTOF",id1,temp1);
-                    generate(token.getVal(), temp1, id2);
+                    generate("ltof",id1,temp1);
+                    generate(symToOp(operator), temp1, id2);
                 }
                 else{
-                    generate(token.getVal(), id1, id2);
+                    generate(symToOp(operator), id1, id2);
                 }
-                generate("GOTO");
+                generate("goto");
                 LinkedList<Integer> ETrue = makeList(quads.getNextQuad()-2);
                 LinkedList<Integer> EFalse = makeList(quads.getNextQuad()-1);
                 semanticStack.push(ETrue);
@@ -824,22 +839,22 @@ public class SemanticActions {
                     }
                     else if (typeCheck(id1, id2) == 1 ){
                         VariableEntry tempVar = createTemp(TokenType.REAL);
-                        generate("F"+symToOp(operator), id1, id2, tempVar);
+                        generate("f"+symToOp(operator), id1, id2, tempVar);
                         semanticStack.push(tempVar);
                     }
                     else if (typeCheck(id1, id2) == 2 ){
                         VariableEntry tempVar = createTemp(TokenType.REAL);
-                        generate("LTOF", id1, id2, tempVar);
+                        generate("ltof", id1, id2, tempVar);
                         VariableEntry tempVar2 = createTemp(TokenType.REAL);
-                        generate("F" + symToOp(operator), id1, tempVar, tempVar2);
+                        generate("f" + symToOp(operator), id1, tempVar, tempVar2);
                         semanticStack.push(tempVar2);
                     }
                     else if (typeCheck(id1, id2) == 3){
                         VariableEntry tempVar = createTemp(TokenType.REAL);
-                        generate("LTOF", id1, tempVar);
+                        generate("ltof", id1, tempVar);
                         VariableEntry tempVar2 = createTemp(TokenType.REAL);
                         semanticStack.push(tempVar);
-                        generate("F"+symToOp(operator), tempVar,id2, tempVar2);
+                        generate("f"+symToOp(operator), tempVar,id2, tempVar2);
                     }
                     semanticStack.push(EType.arithmetic);
                 }
@@ -915,22 +930,22 @@ public class SemanticActions {
                     if(typeCheck(id1, id2) == 0){
                         if(operator.getVal().toLowerCase().equals("mod")) {
                             SymbolTableEntry temp1 = createTemp(TokenType.INTEGER);
-                            generate("MOVE", id1, temp1);
+                            generate("move", id1, temp1);
                             SymbolTableEntry temp2 = createTemp(TokenType.INTEGER);
-                            generate("MOVE", temp1, temp2);
-                            generate("SUB", temp2, id2, temp1);
+                            generate("move", temp1, temp2);
+                            generate("sub", temp2, id2, temp1);
                             //result will be in $$TEMP1
                             String resultLocation = Integer.toString(quads.getNextQuad() - 2);
-                            generate("BGE", temp1, id2, resultLocation);
+                            generate("bge", temp1, id2, resultLocation);
                             semanticStack.push(temp1);
                         }
                         else if(operator.getVal().equals("/")){
                             SymbolTableEntry temp1 = createTemp(TokenType.INTEGER);
-                            generate("LTOF", id1, temp1);
+                            generate("ltof", id1, temp1);
                             SymbolTableEntry temp2 = createTemp(TokenType.REAL);
-                            generate("LTOF", id2, temp2);
+                            generate("ltof", id2, temp2);
                             SymbolTableEntry temp3 = createTemp(TokenType.REAL);
-                            generate("FDIV", temp1, temp2, temp3);
+                            generate("fdiv", temp1, temp2, temp3);
                             semanticStack.push(temp3);
                         }
                         else{
@@ -942,48 +957,48 @@ public class SemanticActions {
                     else if(typeCheck(id1, id2) == 1){
                         if (operator.getVal().toLowerCase().equals("div")){
                             SymbolTableEntry temp1 = createTemp(TokenType.INTEGER);
-                            generate("FTOL",id1,temp1);
+                            generate("ftol",id1,temp1);
                             SymbolTableEntry temp2 = createTemp(TokenType.INTEGER);
-                            generate("FTOL",id2,temp2);
+                            generate("ftol",id2,temp2);
                             SymbolTableEntry temp3 = createTemp(TokenType.INTEGER);
-                            generate("DIV",temp1,temp2,temp3);
+                            generate("div",temp1,temp2,temp3);
                             semanticStack.push(temp3);
                         }
                         else{
                             SymbolTableEntry temp1 = createTemp(TokenType.REAL);
-                            generate("F"+symToOp(operator), id1, id2, temp1);
+                            generate("f"+symToOp(operator), id1, id2, temp1);
                             semanticStack.push(temp1);
                         }
                     }
                     else if(typeCheck(id1, id2) == 2){
                         if(operator.getVal().toLowerCase().equals("div")){
                             SymbolTableEntry temp1 = createTemp(TokenType.INTEGER);
-                            generate("FTOL",id1,temp1);
+                            generate("ftol",id1,temp1);
                             SymbolTableEntry temp2 = createTemp(TokenType.INTEGER);
-                            generate("DIV", temp1, id2, temp2);
+                            generate("div", temp1, id2, temp2);
                             semanticStack.push(temp2);
                         }
                         else{
                             SymbolTableEntry temp1 = createTemp(TokenType.REAL);
-                            generate("LTOF",id2, temp1);
+                            generate("ltof",id2, temp1);
                             SymbolTableEntry temp2 = createTemp(TokenType.REAL);
-                            generate("F"+symToOp(operator), id1, temp1, temp2);
+                            generate("f"+symToOp(operator), id1, temp1, temp2);
                             semanticStack.push(temp2);
                         }
                     }
                     else if(typeCheck(id1,id2) == 3){
                         if(operator.getVal().toLowerCase().equals("div")){
                             SymbolTableEntry temp1 = createTemp(TokenType.INTEGER);
-                            generate("FTOL", id2, temp1);
+                            generate("ftol", id2, temp1);
                             SymbolTableEntry temp2 = createTemp(TokenType.INTEGER);
-                            generate("DIV", id1, temp1, temp2);
+                            generate("div", id1, temp1, temp2);
                             semanticStack.push(temp2);
                         }
                         else{
                             SymbolTableEntry temp1 = createTemp(TokenType.REAL);
-                            generate("LTOF", id1, temp1);
+                            generate("ltof", id1, temp1);
                             SymbolTableEntry temp2 = createTemp(TokenType.REAL);
-                            generate("F"+symToOp(operator),temp1, id2, temp2);
+                            generate("f"+symToOp(operator),temp1, id2, temp2);
                             semanticStack.push(temp2);
                         }
                     }
@@ -1052,7 +1067,7 @@ public class SemanticActions {
                     else{
                         SymbolTableEntry id = (SymbolTableEntry)semanticStack.pop();
                         VariableEntry temp1 = createTemp(id.getType());
-                        generate("LOAD", id, offset, temp1);
+                        generate("load", id, offset, temp1);
                         semanticStack.push(temp1);
                     }
                 }
@@ -1085,21 +1100,21 @@ public class SemanticActions {
                 while(!tempStack.empty()){
                     SymbolTableEntry id = (SymbolTableEntry)tempStack.pop();
                     localMemory += 1;
-                    generate("PARAM", id);
+                    generateParamStatement(id);
                 }
                 FunctionEntry function = (FunctionEntry)semanticStack.pop();
                 if(parmCountStack.peek() > function.getNumberOfParameters()){
                     //Error should reflect mismatch in parameters
                     throw SemanticError.GenericError();
                 }
-                generate("CALL", function, Integer.toString(parmCountStack.peek()));
+                generate("call", function, Integer.toString(parmCountStack.peek()));
                 parmCountStack.pop();
                 nextParmStack.pop();
                 if(!nextParmStack.empty()) {
                     nextParm = nextParmStack.peek().get(0);
                 }
                 SymbolTableEntry temp = createTemp(function.getType());
-                generate("MOVE", function.getResult().getName(), temp);
+                generate("move", function.getResult().getName(), temp);
                 semanticStack.push(temp);
                 semanticStack.push(EType.arithmetic);
                 break;
@@ -1131,12 +1146,12 @@ public class SemanticActions {
                     while(!semanticStack.empty() && semanticStack.peek() instanceof ParamEntry){
                         ParamEntry param = (ParamEntry)semanticStack.pop();
                         localMemory += 1;
-                        generate("param", id);
+                        generateParamStatement(id);
 
                     }
 
                 }
-                generate("CALL", id, Integer.toString(parmCountStack.peek()));
+                generate("call", id, Integer.toString(parmCountStack.peek()));
                 parmCountStack.pop();
                 nextParmStack.pop();
                 nextParm = null;
@@ -1153,9 +1168,9 @@ public class SemanticActions {
                 if(id.getNumberOfParameters() > 0){
                     throw SemanticError.GenericError();
                 }
-                generate("CALL", id, "0");
+                generate("call", id, "0");
                 VariableEntry temp = createTemp(id.getType());
-                generate("MOVE", id.getResult(), temp);
+                generate("move", id.getResult(), temp);
                 semanticStack.push(temp);
                 semanticStack.push(EType.arithmetic);
                 break;
@@ -1195,14 +1210,14 @@ public class SemanticActions {
                 backPatchList.add(globalStore);
                 backPatch(backPatchList, globalMemory);
                 generate("free", Integer.toString(globalMemory));
-                generate("PROCEND");
+                generate("procend");
                 break;
 
             }
 
             case 56:{
                 //generate("PROCBEGIN", globalTable.lookup("main"));
-                generate("PROCBEGIN", "main");
+                generate("procbegin", "main");
                 globalStore = quads.getNextQuad();
                 generate("alloc");
                 break;
@@ -1312,17 +1327,39 @@ public class SemanticActions {
         quads.incrementNextQuad();
 
     }
+    //generates param statements
+    public void generateParamStatement(SymbolTableEntry id){
+        String paramOp = "";
+
+        if(id.isParam()){
+            paramOp +="%";
+            paramOp += Integer.toString(Math.abs(id.getAddress()));
+        }
+
+        else if(global){
+            paramOp += "@_";
+            //get the param's address for creation of a quad
+            paramOp += Integer.toString(Math.abs(id.getAddress()));
+        }
+        else{
+            paramOp += "@%";
+            //get the param's address for creation of a quad
+            paramOp += Integer.toString(Math.abs(id.getAddress()));
+        }
+        generate("param", paramOp);
+
+    }
     public void fiftyOneWrite(){
         while(!semanticStack.empty() && semanticStack.peek() instanceof SymbolTableEntry) {
             SymbolTableEntry id = (SymbolTableEntry) semanticStack.pop();
-            generate("NEWL");
+            generate("newl");
             if (id.getType() == TokenType.REAL) {
-                generate("FOUTP", id);
+                generate("foutp", id);
             } else if(id.getType() == TokenType.INTCONSTANT || id.getType() == TokenType.INTEGER) {
-                generate("OUTP", id);
+                generate("outp", id);
             }
             else {
-                generate("PRINT", Integer.toString(id.getAddress()));
+                generate("print", Integer.toString(id.getAddress()));
             }
         }
     }
@@ -1332,9 +1369,9 @@ public class SemanticActions {
             semanticStack.pop();
             semanticStack.pop();
             if (id.getType() == TokenType.REAL) {
-                generate("FINP", id);
+                generate("finp", id);
             } else {
-                generate("INP", id);
+                generate("inp", id);
             }
         }
     }
@@ -1343,9 +1380,12 @@ public class SemanticActions {
         if (operand.isParam()) {
             return "^%" + Integer.toString(Math.abs(operand.getAddress()));
         }
+        else if (operand.isFunction() || operand.isProc()){
+            return operand.getName();
+        }
         else if(operand.isConstant()){
             VariableEntry tempVar = createTemp(operand.getType());
-            generate("MOVE", operand.getName(), tempVar);
+            generate("move", operand.getName(), tempVar);
             if(global){
                 return "_" + Math.abs(tempVar.getAddress());
             }
@@ -1363,7 +1403,11 @@ public class SemanticActions {
         }
     }
     public String genOperand(String operand){
-        //int opLocation = constantTable.lookup(operand).getAddress();
+        //if the string is a symboltable entry for a procedure or function, it must be swapped out for its address
+        if(operand.startsWith("$$")){
+            int operandAddress = lookup(operand).getAddress();
+            return genOperand(Integer.toString(Math.abs(operandAddress)));
+        }
         if(global){
             return "_" + operand;
         }

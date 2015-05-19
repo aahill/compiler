@@ -26,6 +26,7 @@ public class SemanticError extends CompilerError {
                 ">>>ERROR: attemped array access with illegal index. Indecies must be referenced using integer numbers.\n" +
                         "Found on line " + lineNum + ": " + line);
     }
+    //public static SemanticError Illegal
     public static SemanticError GenericError(){
         return new SemanticError(Type.TEST,
                 "GENERIC ERROR, MUST REPLACE");
