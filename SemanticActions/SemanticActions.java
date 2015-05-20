@@ -735,9 +735,9 @@ public class SemanticActions {
 
 
                 }
-                if(procOrFunc.getName().toLowerCase().equals("write")){
+                //if(procOrFunc.getName().toLowerCase().equals("write")){
                     semanticStack.push(id);
-                }
+                //}
                 break;
             }
 
@@ -823,6 +823,13 @@ public class SemanticActions {
                         semanticStack.push(E2False);
                         semanticStack.push(EType.relational);
                     }
+                    else{
+                        semanticStack.push(E2True);
+                        semanticStack.push(E2False);
+                        semanticStack.push(operator);
+                        semanticStack.push(E1True);
+                        semanticStack.push(E1False);
+                    }
                 }
                 else{
                     SymbolTableEntry id2 = (SymbolTableEntry)semanticStack.pop();
@@ -891,14 +898,14 @@ public class SemanticActions {
                         semanticStack.push(tempStack.pop());
                     }
                     @SuppressWarnings("unchecked")
-                    LinkedList<Integer> E1True = (LinkedList<Integer>) semanticStack.pop();
-                    @SuppressWarnings("unchecked")
                     LinkedList<Integer> E1False = (LinkedList<Integer>) semanticStack.pop();
+                    @SuppressWarnings("unchecked")
+                    LinkedList<Integer> E1True = (LinkedList<Integer>) semanticStack.pop();
                     Token operator = (Token)semanticStack.pop();
                     @SuppressWarnings("unchecked")
-                    LinkedList<Integer> E2True = (LinkedList<Integer>) semanticStack.pop();
-                    @SuppressWarnings("unchecked")
                     LinkedList<Integer> E2False = (LinkedList<Integer>) semanticStack.pop();
+                    @SuppressWarnings("unchecked")
+                    LinkedList<Integer> E2True = (LinkedList<Integer>) semanticStack.pop();
 
                     if(eType != EType.relational){
                         throw SemanticError.IllegalETypeException();
@@ -1039,20 +1046,19 @@ public class SemanticActions {
 
             case 47: {
                 EType eType = (EType) semanticStack.pop();
-                @SuppressWarnings("unchecked")
-                LinkedList<Integer> ETrue = (LinkedList<Integer>) semanticStack.pop();
-                @SuppressWarnings("unchecked")
-                LinkedList<Integer> EFalse = (LinkedList<Integer>) semanticStack.pop();
                 if(eType != EType.relational){
                     throw SemanticError.IllegalETypeException();
                 }
-                else{
-                    LinkedList<Integer> NewETrue = EFalse;
-                    LinkedList<Integer> NewEFalse = ETrue;
-                    semanticStack.push(NewETrue);
-                    semanticStack.push(NewEFalse);
-                    semanticStack.push(EType.relational);
-                }
+                @SuppressWarnings("unchecked")
+                LinkedList<Integer> EFalse = (LinkedList<Integer>) semanticStack.pop();
+                @SuppressWarnings("unchecked")
+                LinkedList<Integer> ETrue = (LinkedList<Integer>) semanticStack.pop();
+
+                LinkedList<Integer> NewETrue = EFalse;
+                LinkedList<Integer> NewEFalse = ETrue;
+                semanticStack.push(NewETrue);
+                semanticStack.push(NewEFalse);
+                semanticStack.push(EType.relational);
                 break;
             }
 
@@ -1143,8 +1149,8 @@ public class SemanticActions {
                     if(parmCountStack.get(0) != id.getNumberOfParameters()){
                         throw SemanticError.GenericError();
                     }
-                    while(!semanticStack.empty() && semanticStack.peek() instanceof ParamEntry){
-                        ParamEntry param = (ParamEntry)semanticStack.pop();
+                    while(!semanticStack.empty() && !(semanticStack.peek() instanceof ProcedureEntry)){
+                        SymbolTableEntry param = (SymbolTableEntry)semanticStack.pop();
                         localMemory += 1;
                         generateParamStatement(id);
 

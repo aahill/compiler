@@ -46,7 +46,7 @@ public class Quadruple {
 
     //Print the Quadruple array
     public void print(){
-        int quadIndex = 0;
+        int quadIndex = 1;
         System.out.println();
         //the first element in the quadruples array is always the CODE quad
         System.out.println(this.quadruple.get(0)[0]);
