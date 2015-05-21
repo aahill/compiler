@@ -349,6 +349,8 @@ public class SemanticActions {
             case 15: {
                 FunctionEntry functEntry = new FunctionEntry(token.getVal());
                 globalTable.insert(functEntry);
+                //functEntry.setAddress(globalMemory);
+                //globalMemory += 1;
                 SymbolTableEntry funName = create(functEntry.getName(), TokenType.INTEGER);
                 functEntry.setResult(funName);
                 semanticStack.push(functEntry);
@@ -409,7 +411,7 @@ public class SemanticActions {
                         ConstantEntry const1 = new ConstantEntry(((Token)semanticStack.pop()).getVal(),type);
                         ConstantEntry const2 = new ConstantEntry(((Token)semanticStack.pop()).getVal(),type);
                         Token parmToken = (Token) semanticStack.pop();
-                        ArrayEntry arrayParm = new ArrayEntry(parmToken.getVal(),type);
+                        /*ArrayEntry arrayParm = new ArrayEntry(parmToken.getVal(),type);
                         if (global) {
                             globalTable.insert(arrayParm);
                             arrayParm.setAddress(globalMemory);
@@ -419,9 +421,9 @@ public class SemanticActions {
                             arrayParm.setAddress(localMemory);
                             localMemory += 1;
                         }
-                        globalTable.insert(arrayParm);
+                        //globalTable.insert(arrayParm);
                         arrayParm.setUpperBound(const1);
-                        arrayParm.setLowerBound(const2);
+                        arrayParm.setLowerBound(const2);*/
 
                         //create parminfo section
                         ParamEntry paramEntry = new ParamEntry(parmToken.getVal(), type);
@@ -434,20 +436,22 @@ public class SemanticActions {
                         else{
                             ((FunctionEntry) id).addParameterInfo(paramEntry);
                         }
-
-                    } else {
-                        Token parmToken = (Token) semanticStack.pop();
-                        VariableEntry parmEntry = new VariableEntry(parmToken.getVal(), type);
-                        parmEntry.setParamStatus(true);
                         if (global) {
-                            globalTable.insert(parmEntry);
-                            parmEntry.setAddress(globalMemory);
+                            globalTable.insert(paramEntry);
+                            paramEntry.setAddress(globalMemory);
                             globalMemory += 1;
                         } else {
-                            localTable.insert(parmEntry);
-                            parmEntry.setAddress(localMemory);
+                            localTable.insert(paramEntry);
+                            paramEntry.setAddress(localMemory);
                             localMemory += 1;
                         }
+
+                    }
+                    else {
+                        Token parmToken = (Token) semanticStack.pop();
+                        //VariableEntry parmEntry = new VariableEntry(parmToken.getVal(), type);
+                        //parmEntry.setParamStatus(true);
+
                         //create parmInfo entry
                         ParamEntry parm = new ParamEntry(parmToken.getVal(), type);
                         parm.setIsArray(false);
@@ -456,6 +460,15 @@ public class SemanticActions {
                         }
                         else{
                             ((ProcedureEntry)id).addParameterInfo(parm);
+                        }
+                        if (global) {
+                            globalTable.insert(parm);
+                            parm.setAddress(globalMemory);
+                            globalMemory += 1;
+                        } else {
+                            localTable.insert(parm);
+                            parm.setAddress(localMemory);
+                            localMemory += 1;
                         }
                     }
                     //id.setAddress(localMemory);
@@ -473,7 +486,7 @@ public class SemanticActions {
             case 22:{
                 EType eType = (EType) semanticStack.pop();
                 if(eType != EType.relational){
-                    throw SemanticError.IllegalETypeException();
+                    throw SemanticError.IllegalETypeException(EType.relational, eType, lineNumber, line);
                 }
                 else{
                     @SuppressWarnings("unchecked")
@@ -495,7 +508,7 @@ public class SemanticActions {
             case 25:{
                 EType eType = (EType)semanticStack.pop();
                 if(eType != EType.relational){
-                    throw SemanticError.IllegalETypeException();
+                    throw SemanticError.IllegalETypeException(EType.relational, eType, lineNumber, line);
                 }
                 else{
                     @SuppressWarnings("unchecked")
@@ -569,8 +582,11 @@ public class SemanticActions {
                 //IS THIS RIGHT?
                 //EType etype2 = (EType)semanticStack.pop();
                 SymbolTableEntry id1 = (SymbolTableEntry)semanticStack.pop();
-                if(typeCheck(id1, id2) == 3 || etype1 != EType.arithmetic){
-                    throw SemanticError.GenericError();
+                if(etype1 != EType.arithmetic){
+                    throw SemanticError.IllegalETypeException(EType.arithmetic, etype1, lineNumber, line);
+                }
+                if(typeCheck(id1, id2) == 3){
+                    throw SemanticError.IllegalTypeConversion(id1.getName(), lineNumber, line );
                 }
                 else if(typeCheck(id1, id2)==2){
                     SymbolTableEntry temp1 = createTemp(TokenType.REAL);
@@ -594,10 +610,11 @@ public class SemanticActions {
             case 32:{
                 EType etype = (EType)semanticStack.pop();
                 if(etype != EType.arithmetic){
-                    throw SemanticError.IllegalETypeException();
+                    throw SemanticError.IllegalETypeException(EType.arithmetic, etype, lineNumber, line);
                 }
                 if(!(((SymbolTableEntry)semanticStack.peek()).isArray())){
-                    throw SemanticError.IllegalETypeException();
+                    throw SemanticError.NotArrayException((SymbolTableEntry)semanticStack.peek(),lineNumber,line);
+
                 }
                 break;
             }
@@ -608,7 +625,7 @@ public class SemanticActions {
                 ArrayEntry arrayName = (ArrayEntry)semanticStack.peek();
 
                 if(eType != EType.arithmetic){
-                    throw SemanticError.IllegalETypeException();
+                    throw SemanticError.IllegalETypeException(EType.arithmetic, eType, lineNumber, line);
                 }
                 if(id.getType() != TokenType.INTEGER){
                     throw SemanticError.IllegalIndexException(lineNumber, line);
@@ -654,7 +671,7 @@ public class SemanticActions {
                 //semanticStack.pop();
                 ProcedureEntry id = (ProcedureEntry)semanticStack.pop();
                 if(id.getNumberOfParameters() != 0){
-                    throw SemanticError.GenericError();
+                    throw SemanticError.ProcedureParameterException(lineNumber, line);
                 }
                 generate("call",id,"0");
                 break;
@@ -663,11 +680,11 @@ public class SemanticActions {
             case 37:{
                 EType eType = (EType)semanticStack.pop();
                 if(eType != EType.arithmetic){
-                    throw SemanticError.IllegalETypeException();
+                    throw SemanticError.IllegalETypeException(EType.arithmetic, eType, lineNumber, line);
                 }
                 SymbolTableEntry id = (SymbolTableEntry)semanticStack.pop();
                 if(!(!id.isVariable() || !id.isConstant() || !id.isArray() || !id.isResult())){
-                    throw SemanticError.GenericError();
+                    throw SemanticError.IllegalParameterTypeException(lineNumber, line);
                 }
                 int counter = parmCountStack.pop();
                 counter += 1;
@@ -686,18 +703,18 @@ public class SemanticActions {
                     FunctionEntry funct = (FunctionEntry) procOrFunc;
                     if (!((funct.getName().toLowerCase().equals("read")) || funct.getName().toLowerCase().equals("write"))) {
                         if (counter > ((FunctionEntry) funct).getNumberOfParameters()) {
-                            throw SemanticError.GenericError();
+                            throw SemanticError.ExpectedParamNumberExceededException(funct, lineNumber, line);
                         }
 
                         //if (id.getType() != nextParm.getType()) {
                         if (id.getType() != nextParm.getType() ){
-                            throw SemanticError.GenericError();
+                            throw SemanticError.ParameterMismatchException(procOrFunc, nextParm, id, lineNumber, line);
                         }
                         //if (nextParm.isArray()) {
                         if (nextParm.isArray()) {
                             if (!(((ArrayEntry) id).getLowerBound().getName().equals(nextParm.getLowerBound().getName()) &&
                                     ((ArrayEntry) id).getUpperBound().getName().equals(nextParm.getUpperBound().getName()))) {
-                                throw SemanticError.GenericError();
+                                throw SemanticError.ArrayParameterMismatchException(procOrFunc, nextParm, (ArrayEntry)id, lineNumber, line);
                             }
                         }
                     }
@@ -712,15 +729,15 @@ public class SemanticActions {
                     ProcedureEntry proc = (ProcedureEntry) procOrFunc;
                     if (!((proc.getName().toLowerCase().equals("read")) || proc.getName().toLowerCase().equals("write"))) {
                         if (counter > proc.getNumberOfParameters()) {
-                            throw SemanticError.GenericError();
+                            throw SemanticError.ExpectedParamNumberExceededException(procOrFunc, lineNumber, line);
                         }
                         if (id.getType() != nextParm.getType()) {
-                            throw SemanticError.GenericError();
+                            throw SemanticError.ParameterMismatchException(procOrFunc, nextParm, id, lineNumber, line);
                         }
                         if (nextParm.isArray()) {
                             if (!(((ArrayEntry) id).getLowerBound().getName().equals(nextParm.getLowerBound().getName()) &&
                                     ((ArrayEntry) id).getUpperBound().getName().equals(nextParm.getUpperBound().getName()))) {
-                                throw SemanticError.GenericError();
+                                throw SemanticError.ArrayParameterMismatchException(procOrFunc, nextParm, (ArrayEntry) id, lineNumber, line);
                             }
                         }
                         if(counter < proc.getNumberOfParameters()) {
@@ -744,7 +761,7 @@ public class SemanticActions {
             case 38:{
                 EType eType = (EType)semanticStack.pop();
                 if(eType != EType.arithmetic){
-                    throw SemanticError.IllegalETypeException();
+                    throw SemanticError.IllegalETypeException(EType.arithmetic, eType, lineNumber, line);
                 }
                 semanticStack.push(token);
                 break;
@@ -757,7 +774,7 @@ public class SemanticActions {
                 SymbolTableEntry id1 = (SymbolTableEntry)semanticStack.pop();
 
                 if(eType != EType.arithmetic){
-                    throw SemanticError.IllegalETypeException();
+                    throw SemanticError.IllegalETypeException(EType.arithmetic, eType, lineNumber, line);
                 }
                 if(typeCheck(id1, id2)== 2){
                     SymbolTableEntry temp1 = createTemp(TokenType.REAL);
@@ -790,14 +807,14 @@ public class SemanticActions {
                 EType eType = (EType)semanticStack.pop();
                 if (token.getVal().toLowerCase().equals("or")) {
                     if (eType != EType.relational){
-                        throw SemanticError.IllegalETypeException();
+                        throw SemanticError.IllegalETypeException(EType.relational, eType, lineNumber, line);
                     }
                     LinkedList<Integer> EFalse = (LinkedList<Integer>)semanticStack.peek();
                     backPatch(EFalse, quads.getNextQuad());
                 }
                 else{
                     if(eType != EType.arithmetic){
-                        throw SemanticError.IllegalETypeException();
+                        throw SemanticError.IllegalETypeException(EType.arithmetic, eType, lineNumber, line);
                     }
                 }
                 semanticStack.push(token);
@@ -837,7 +854,7 @@ public class SemanticActions {
                     SymbolTableEntry id1 = (SymbolTableEntry)semanticStack.pop();
 
                     if(eType != EType.arithmetic){
-                        throw SemanticError.IllegalETypeException();
+                        throw SemanticError.IllegalETypeException(EType.arithmetic, eType, lineNumber, line);
                     }
                     if (typeCheck(id1, id2) == 0 ){
                         VariableEntry tempVar = createTemp(TokenType.INTEGER);
@@ -908,7 +925,7 @@ public class SemanticActions {
                     LinkedList<Integer> E2True = (LinkedList<Integer>) semanticStack.pop();
 
                     if(eType != EType.relational){
-                        throw SemanticError.IllegalETypeException();
+                        throw SemanticError.IllegalETypeException(EType.relational, eType, lineNumber, line);
                     }
                     else{
                         LinkedList<Integer> ETrue = E2True;
@@ -929,7 +946,7 @@ public class SemanticActions {
                     SymbolTableEntry id1 = (SymbolTableEntry)semanticStack.pop();
 
                     if(eType != EType.arithmetic){
-                        throw SemanticError.IllegalETypeException();
+                        throw SemanticError.IllegalETypeException(EType.arithmetic, eType, lineNumber, line);
                     }
                     if(typeCheck(id1, id2) != 0 && operator.getVal().equals("mod")){
                         throw SemanticError.ModOperandsException(lineNumber, line);//mismatch
@@ -1047,7 +1064,7 @@ public class SemanticActions {
             case 47: {
                 EType eType = (EType) semanticStack.pop();
                 if(eType != EType.relational){
-                    throw SemanticError.IllegalETypeException();
+                    throw SemanticError.IllegalETypeException(EType.relational, eType, lineNumber, line);
                 }
                 @SuppressWarnings("unchecked")
                 LinkedList<Integer> EFalse = (LinkedList<Integer>) semanticStack.pop();
@@ -1084,11 +1101,11 @@ public class SemanticActions {
             case 49:{
                 EType eType = (EType)semanticStack.pop();
                 if(eType != EType.arithmetic){
-                    throw SemanticError.IllegalETypeException();
+                    throw SemanticError.IllegalETypeException(EType.arithmetic, eType, lineNumber, line);
                 }
                 SymbolTableEntry id = (SymbolTableEntry)semanticStack.peek();
                 if(!id.isFunction()){
-                    throw SemanticError.GenericError();
+                    throw SemanticError.NotProcOrFunctException(id, lineNumber, line);
                 }
                 parmCountStack.push(0);
                 //nextParm = ((FunctionEntry)id).getParameters(parmCountStack.peek());
@@ -1111,7 +1128,7 @@ public class SemanticActions {
                 FunctionEntry function = (FunctionEntry)semanticStack.pop();
                 if(parmCountStack.peek() > function.getNumberOfParameters()){
                     //Error should reflect mismatch in parameters
-                    throw SemanticError.GenericError();
+                    throw SemanticError.ExpectedParamNumberExceededException(function, lineNumber, line);
                 }
                 generate("call", function, Integer.toString(parmCountStack.peek()));
                 parmCountStack.pop();
@@ -1147,7 +1164,7 @@ public class SemanticActions {
                 }
                 else{
                     if(parmCountStack.get(0) != id.getNumberOfParameters()){
-                        throw SemanticError.GenericError();
+                        throw SemanticError.ProcedureParameterException(lineNumber, line);
                     }
                     while(!semanticStack.empty() && !(semanticStack.peek() instanceof ProcedureEntry)){
                         SymbolTableEntry param = (SymbolTableEntry)semanticStack.pop();
@@ -1155,9 +1172,9 @@ public class SemanticActions {
                         generateParamStatement(id);
 
                     }
-
+                    generate("call", id, Integer.toString(parmCountStack.peek()));
                 }
-                generate("call", id, Integer.toString(parmCountStack.peek()));
+
                 parmCountStack.pop();
                 nextParmStack.pop();
                 nextParm = null;
@@ -1169,10 +1186,10 @@ public class SemanticActions {
                 FunctionEntry id = (FunctionEntry)semanticStack.pop();
                 if(!id.isFunction())
                 {
-                    throw SemanticError.GenericError();
+                    throw SemanticError.NotProcOrFunctException(id, lineNumber, line);
                 }
                 if(id.getNumberOfParameters() > 0){
-                    throw SemanticError.GenericError();
+                    throw SemanticError.ProcedureParameterException(lineNumber, line);
                 }
                 generate("call", id, "0");
                 VariableEntry temp = createTemp(id.getType());
@@ -1187,7 +1204,7 @@ public class SemanticActions {
                 if(((SymbolTableEntry)semanticStack.peek()).isFunction()){
                     SymbolTableEntry id = (SymbolTableEntry)semanticStack.pop();
                     if(!id.getName().equals(currentFunction)){
-                        throw SemanticError.GenericError();
+                        throw SemanticError.CurrentFunctionMismatchException(currentFunction, id.getName(), lineNumber, line);
                     }
                     else{
                         //semanticStack.push("$$"+id.getName());
@@ -1205,7 +1222,7 @@ public class SemanticActions {
             case 54:{
                 EType eType = (EType)semanticStack.pop();
                 if(!((SymbolTableEntry)semanticStack.peek()).isFunction()){
-                    throw SemanticError.GenericError();
+                    throw SemanticError.NotProcOrFunctException((SymbolTableEntry)semanticStack.peek(), lineNumber, line);
                 }
                 //semanticStack.push(eType);
                 break;
@@ -1414,12 +1431,15 @@ public class SemanticActions {
             int operandAddress = lookup(operand).getAddress();
             return genOperand(Integer.toString(Math.abs(operandAddress)));
         }
-        if(global){
+        else{
+            return operand;
+        }
+        /*if(global){
             return "_" + operand;
         }
         else{
             return "%" + operand;
-        }
+        }*/
     }
     public void printQuads(){
         this.quads.print();

@@ -1,10 +1,8 @@
 Program theUltimateTest (input,output);
 {
-    This file may contain some INTENTIONAL BUGS to test your compiler.
-    As they are encountered, you should fix them and re-run until the
-    program runs.
+    This file contains a version of ult.pas with errors removed
 }
-
+ 
 Var
    h,z,i,x,y : integer;
    w : array [1..5] of integer;
@@ -13,10 +11,10 @@ Var
 function gcd (a, b : integer) : result integer;
    var x : integer;
 begin
-   if (b = 0) then gcd := a
+   if (b <= 0) then gcd := a
    else begin
      x := a;
-     while (x >= b) do
+     while (x >= b) do 
       begin
         x := x - b
       end;
@@ -26,7 +24,7 @@ end
 
 procedure this (why : integer; note : real);
 begin
-   { The comparison checks how you handle arithmetic
+   { The comparison checks how you handle arithmetic 
      and comparisons with mixed type numbers  }
    if ((why = note - 1608) or (not (note = why)))
    then if (x - y = 0)
@@ -48,11 +46,11 @@ end
 begin
    i := 1;
    x := 5;
-   While (i <= 5) and (x <= 75) do
+   While (I <= 5) and (x <= 75) do
    begin
       w [i] := x;
       w[x] := w[i] * 20;
-      i := i + 1
+      i := i + 1 
       end;
    read (x,y);
    if x>y then write (gcd(x, y)) else write (gcd (h,z));

@@ -65,5 +65,9 @@ public class Quadruple {
             System.out.println();
             quadIndex += 1;
         }
+
+    }
+    public void printToFile(){
+        
     }
 }

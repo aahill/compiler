@@ -33,6 +33,8 @@ public class Token {
 
     //method to reclassify the value of the token
     public void reclassify(){
+        //pascal is case-insensitive, so the token value will be normalized to lowercase
+        this.setVal(this.value.toLowerCase());
         //switch statement for keywords and symbols
         switch(((String)this.value).toLowerCase()){
             case "array":
