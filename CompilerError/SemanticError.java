@@ -5,6 +5,7 @@ import SymbolTable.*;
 
 import java.util.function.Function;
 
+/** Exception class thrown when an error is encountered during semantic construction. */
 public class SemanticError extends CompilerError {
 
     public SemanticError( Type errorNumber, String message){

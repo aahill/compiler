@@ -2,6 +2,7 @@ package CompilerError;
 import GrammarSymbols.*;
 import LexicalAnalyzer.*;
 
+/** Exception class thrown when an error is encountered during instruction parsing. */
 public class ParserError extends CompilerError{
 
     public ParserError(Type errorNumber, String message)

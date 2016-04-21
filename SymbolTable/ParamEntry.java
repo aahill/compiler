@@ -2,9 +2,7 @@ package SymbolTable;
 
 import GrammarSymbols.*;
 
-/**
- * Created by Aaron on 5/12/15.
- */
+
 public class ParamEntry extends SymbolTableEntry {
     private ConstantEntry upperBound;
     private ConstantEntry lowerBound;

@@ -2,6 +2,7 @@ package SemanticActions;
 
 import java.util.Vector;
 
+//quadruple class for creating machine code for the output file
 public class Quadruple {
     private Vector<String[]> quadruple;
     private int nextQuad;

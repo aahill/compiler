@@ -5,6 +5,10 @@ import GrammarSymbols.NonTerminal;
 import GrammarSymbols.SemanticAction;
 import GrammarSymbols.TokenType;
 
+/**
+* right hand side table for compilation; dictates which grammer symbols can follow a 
+* production to result in a valid program statement
+**/
 public class RHSTable {
 
     GrammarSymbol[][] rules;

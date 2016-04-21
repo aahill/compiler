@@ -1,5 +1,6 @@
 package GrammarSymbols;
 
+/** enumeration for langauge terminals**/
 public enum NonTerminal implements GrammarSymbol
 {	program(0), identifier_list(1), declarations(2), sub_declarations(3),
     compound_statement(4), identifier_list_tail(5), declaration_list(6),

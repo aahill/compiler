@@ -2,7 +2,9 @@ package Parser;
 
 import CompilerError.*;
 
-
+/**
+  * the parser driver loads the file, and begins the compiling process
+**/
 public class ParserDriver {
 
     public Parser parser;
@@ -12,18 +14,12 @@ public class ParserDriver {
         parser = new Parser(inputFilename, parseTableFilename);
     }
 
+    /*
+    * begin parsing the file
+    */
     public void run()
     {
-        //try {
             parser.parse();
-        /*}
-
-        catch(CompilerError ex) { //SHOULD BE PARSER ERROR
-            System.err.println(ex.getMessage());
-            //parser.semanticActions.quads.print();
-            System.exit(1);
-
-        }*/
 
         //checks if the parser found errors; if not, print parse success message
         if(!parser.foundErrors()) {
@@ -31,22 +27,23 @@ public class ParserDriver {
         }
     }
 
-
+    //loads appropriate file and attempts compilatio
     public static void main(String[] args)
     {
-        String parseTableFile = "Src/Test/TestFiles/parseTable.dat";
-        //String toParse ="Src/Test/TestFiles/semanticActiontest1.dat";
-        //String toParse ="Src/Test/TestFiles/boolTest.dat";
-        //String toParse ="Src/Test/TestFiles/procTest.dat";
-        //String toParse = "Src/Test/TestFiles/expressionTest.dat";
-        //String toParse = "Src/Test/TestFiles/array.pas";
-        //String toParse = "Src/Test/TestFiles/ifTest.dat";
-        //String toParse = "Src/Test/TestFiles/whileTest.pas";
-        String toParse = "Src/Test/TestFiles/ultimateTest.dat";
+        //load parse table for grammer construction
+        String parseTableFile = "Test/TestFiles/parseTable.dat";
+        //multiple files for testing given below
+
+        //String toParse ="Test/TestFiles/semanticActiontest1.dat";
+        //String toParse ="Test/TestFiles/boolTest.dat";
+        //String toParse ="Test/TestFiles/procTest.dat";
+        //String toParse = "Test/TestFiles/expressionTest.dat";
+        //String toParse = "Test/TestFiles/array.pas";
+        //String toParse = "Test/TestFiles/ifTest.dat";
+        //String toParse = "Test/TestFiles/whileTest.pas";
+        String toParse = "Test/TestFiles/ultimateTest.dat";
         ParserDriver test = new ParserDriver(toParse, parseTableFile);
         test.run();
         test.parser.semanticActions.printQuads();
-        //test.parser.semanticActions.localTable.dumpTable();
-        //test.parser.semanticActions.dumpSemanticStack();
     }
 }

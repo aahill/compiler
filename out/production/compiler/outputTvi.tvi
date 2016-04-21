@@ -1,0 +1,154 @@
+call main 0
+exit 
+PROCBEGIN gcd
+alloc , 8
+move 0, %3
+ble ^%0, %3, 8
+goto , 10
+move ^%1, %14
+goto , 21
+move ^%1, %2
+bge %2, ^%0, 13
+goto , 16
+sub %2, ^%0, %4
+move %4, %2
+goto 11
+param %5
+param @%6
+call gcd, 2
+move 14, %7
+move %7, %14
+free 8
+PROCEND 
+PROCBEGIN this
+alloc , 13
+move 1608, %3
+ltof ^%1, %3, %2
+fsub ^%1, %2, %4
+ltof ^%0, %5
+beq %5, %4, 35
+goto , 44
+ltof ^%0, %6
+beq ^%1, %6
+beq ^%1, ^%0
+goto , 35
+sub %3, %2, %7
+move 0, %8
+beq %7, %8, 39
+goto , 44
+move 1, %10
+sub %4, %10, %9
+ftol ^%1, %11
+div ^%0, %11, %12
+stor %12, %9, %7
+free 13
+PROCEND 
+PROCBEGIN that
+alloc , 6
+move 1, %2
+move %2, %0
+move 7.43, %3
+move %3, %1
+move %2, %3
+param @%0
+param @%0
+call this, 2
+free 6
+PROCEND 
+PROCBEGIN main
+alloc , 50
+move 1, _15
+move _15, _4
+move 5, _16
+move _16, _3
+move 5, _17
+ble _4, _17, 70
+goto , 85
+move 75, _18
+ble _3, _18
+goto , 85
+move 1, _20
+sub _4, _20, _19
+stor _3, _19, _7
+move 1, _22
+sub _3, _22, _21
+move 1, _24
+sub _4, _24, _23
+load _7, _23, _25
+move 20, _27
+mul _25, _27, _26
+stor _26, _21, _7
+move 1, _29
+add _4, _29, _28
+move _28, _4
+goto 64
+bgt _3, _2, 87
+goto , 94
+param @_6
+param @_7
+call gcd, 2
+move 14, _30
+newl 
+outp _30
+goto , 100
+param @_8
+param @_9
+call gcd, 2
+move 14, _31
+newl 
+outp _31
+move 1, _33
+sub _6, _33, _32
+move 6758, _34
+stor _34, _32, _7
+move 230000000000.0, _35
+move _35, _12
+move 1, _37
+sub _6, _37, _36
+load _7, _36, _38
+newl 
+outp _38
+newl 
+outp _7
+newl 
+outp _6
+param @_10
+param @_11
+call gcd, 2
+move 14, _39
+param @_0
+param @_0
+call this, 2
+move 1, _41
+sub _10, _41, _40
+load _7, _40, _42
+param @_0
+param @_0
+call this, 2
+call that, 0
+move 1, _43
+move _43, _4
+move 5, _44
+ble _4, _44, 134
+goto , 143
+move 1, _46
+sub _4, _46, _45
+load _7, _45, _47
+newl 
+outp _47
+move 1, _49
+add _4, _49, _48
+move _48, _4
+goto 131
+newl 
+outp _9
+newl 
+outp _11
+newl 
+outp _10
+newl 
+outp _4
+newl 
+outp _8
+free 50
+PROCEND 

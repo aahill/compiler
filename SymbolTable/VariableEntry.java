@@ -50,40 +50,5 @@ public class VariableEntry extends SymbolTableEntry {
         System.out.println();
     }
 
-/***********************************************************
-
- The methods below are not used until later
-
- // A function result will be stored as a variable entry
- public boolean isFunctionResult() {
- return functionResult;
- }
-
- public void setFunctionResult() {
- this.functionResult = true;
- }
-
- // this flag indicates if the variable is a parameter to a procedure or function
- public boolean isParameter() {
- return parm;
- }
-
- // read, write, and main are reserved
- public boolean isReserved() {
- return reserved;
- }
-
- public void setParameter (boolean parm) {
- this.parm = parm;
- }
-
- public void setParm() {
- this.parm = true;
- }
- public void makeReserved() {
- this.reserved = true;
- }
- **************************************************************/
-
 
 }

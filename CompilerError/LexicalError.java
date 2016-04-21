@@ -1,6 +1,6 @@
 package CompilerError;
 
-/** Exception class thrown when a lexical error is encountered. */
+/** Exception class thrown when an lexical error is encountered. */
 public class LexicalError extends CompilerError
 {
     public LexicalError(Type errorNumber, String message)

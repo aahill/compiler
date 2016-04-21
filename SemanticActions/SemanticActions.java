@@ -11,6 +11,7 @@ import GrammarSymbols.*;
 import CompilerError.*;
 import SymbolTable.*;
 
+//declares all valid semantic actions for final stage of compilation
 public class SemanticActions {
 
     private Stack<Object> semanticStack;
@@ -158,7 +159,9 @@ public class SemanticActions {
 
     }
 
-
+    /**
+    * check the types of two input symbol table entries
+    **/
     public int typeCheck(SymbolTableEntry id1, SymbolTableEntry id2){
         boolean id1IsReal = (id1.getType() == TokenType.REALCONSTANT || id1.getType() == TokenType.REAL);
         boolean id2IsReal = (id2.getType() == TokenType.REALCONSTANT || id2.getType() == TokenType.REAL);
@@ -185,6 +188,9 @@ public class SemanticActions {
         }
     }
 
+    /**
+    * determine which semantic action needs to be executed, and execute it
+    **/
     public void Execute(SemanticAction action, Token token, int lineNumber, String line) throws SemanticError {
 
         int actionNumber = action.getIndex();
